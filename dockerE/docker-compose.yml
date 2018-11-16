@@ -9,9 +9,9 @@ services:
     build: .
     volumes:
       - ../src:/home/code
-      - /home/enric/Downloads/juanjo/DATASETS/DHF1K:/home/dataset
+      - /home/enric/Downloads/juanjo/DATASETS/LEDOV:/home/dataset
       - /home/enric/Downloads/juanjo/TRAINED_MODELS/:/home/code/trained_models
-
+      - /home/enric/Downloads/juanjo/SALIENCY_MAPS/:/home/saliency_maps
     ports:
       - 6006:6006
       - 6007:6007

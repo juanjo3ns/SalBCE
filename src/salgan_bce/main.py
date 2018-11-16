@@ -1,6 +1,6 @@
 import sys
 import torch
-import ..utils.salgan_generator
+from ..utils.salgan_generator import create_model
 from ..utils.salgan_utils import load_image, postprocess_prediction
 from ..utils.salgan_utils import normalize_map
 
@@ -11,13 +11,10 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-# parameters for demo inference=================================================
-# PATH_PYTORCH_WEIGHTS = 'model_weights/gen_model.pt'
-# PATH_SAMPLE_IMAGES = 'sample_images'
-# PATH_SAMPLE_SALIENCY = 'sample_saliency'
 PATH_PYTORCH_WEIGHTS = 'model_weights/gen_model.pt'
 INPUT_PATH = '/salgan_pytorch/data/dhf1k_frames/'
 OUTPUT_PATH = '/salgan_pytorch/data/salganbaseline/'
+
 USE_GPU=True
 
 
