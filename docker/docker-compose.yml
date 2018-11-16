@@ -1,0 +1,18 @@
+version: '2.3'
+
+services:
+
+  salgan_pytorch:
+    image: salgan_pytorch
+    container_name: salgan_pytorch
+    working_dir: /salgan_pytorch
+    build: .
+    volumes:
+      - ../src:/salgan_pytorch
+      - ../../dhf1k_frames:/frames
+      - ../../dhf1k_gt:/groundtruth
+    ports:
+      - 6006:6006
+      - 6007:6007
+      - 8888:8888
+    runtime: nvidia

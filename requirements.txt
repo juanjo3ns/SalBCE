@@ -1,0 +1,13 @@
+ipython==7.1.1
+joblib==0.12.5
+matplotlib==3.0.1
+numpy==1.15.3
+opencv-python==3.4.3.18
+Pillow==5.3.0
+protobuf==3.6.1
+requests==2.9.1
+scikit-image==0.14.1
+scipy==1.1.0
+tensorboard-logger==0.1.0
+torch==0.4.1
+torchvision==0.2.1
