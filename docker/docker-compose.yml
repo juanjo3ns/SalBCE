@@ -5,12 +5,13 @@ services:
   salgan_pytorch:
     image: salgan_pytorch
     container_name: salgan_pytorch
-    working_dir: /salgan_pytorch
+    working_dir: /home
     build: .
     volumes:
-      - ../src:/salgan_pytorch
-      - ../../dhf1k_frames:/frames
-      - ../../dhf1k_gt:/groundtruth
+      - ../src:/home/code
+      - /media/eHD/juanjo/DATASETS/DHF1K:/home/dataset
+      - /media/eHD/juanjo/TRAINED_MODELS/:/home/code/src/trained_models
+
     ports:
       - 6006:6006
       - 6007:6007
