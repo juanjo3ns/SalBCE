@@ -1,8 +1,8 @@
 import sys
 import torch
-import salgan_generator
-from salgan_utils import load_image, postprocess_prediction
-from evaluation_metrics.utils import normalize_map
+import ..utils.salgan_generator
+from ..utils.salgan_utils import load_image, postprocess_prediction
+from ..utils.salgan_utils import normalize_map
 
 import numpy as np
 import os

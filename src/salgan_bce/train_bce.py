@@ -1,11 +1,10 @@
 import os
 
-from dataset.datasetDHF1K import DHF1K
+from ..dataloader.datasetDHF1K import DHF1K
 from torch.utils.data import DataLoader
-from evaluation_metrics.evaluate_validation_model import get_saliency_metrics
-from salgan_utils import save_model, get_lr_optimizer
+from ..utils.salgan_utils import save_model, get_lr_optimizer, sendTelegram
+from ..utils.salgan_utils import salgan_generator
 
-import salgan_generator
 import numpy as np
 
 import torch
@@ -18,16 +17,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from IPython import embed
 from tensorboard_logger import configure, log_value
-import requests
-import json
-token = '658824281:AAETui7gl4muFLRsod1j2cGnuIDox_hj6hY'
-url = 'https://api.telegram.org/bot' + token+ '/sendMessage'
-def send(message):
-    r = requests.post(
-        url=url,
-        data={'chat_id': 1458951, 'text': message}
-        #files = {'media': open('0087.jpg', 'rb')}
-    ).json()
+
 
 TRAIN = 'train'
 VAL = 'val'
@@ -82,7 +72,7 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path_out", default='trained_models/salgan_bce',
+    parser.add_argument("--path_out", default='../trained_models/salgan_bce',
                 type=str,
                 help="""set output path for the trained model""")
     parser.add_argument("--batch_size", default=15,
@@ -135,7 +125,7 @@ if __name__ == '__main__':
     print("Init model...")
     # init model with pre-trained weights
     model = salgan_generator.create_model()
-    model.load_state_dict(torch.load('model_weights/gen_model.pt'))
+    model.load_state_dict(torch.load('../trained_models/salgan_bce/models/best.pt'))
     model.train()
     model.cuda()
 	cudnn.benchmark = True

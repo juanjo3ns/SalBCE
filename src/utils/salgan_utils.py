@@ -84,3 +84,8 @@ def get_lr_optimizer( optimizer ):
     """ Get learning rate from optimizer."""
     for param_group in optimizer.param_groups:
         yield param_group['lr']
+
+def normalize_map(s_map):
+	# normalize the salience map (as done in MIT code)
+	norm_s_map = (s_map - np.min(s_map))/((np.max(s_map)-np.min(s_map))*1.0)
+	return norm_s_map

@@ -11,7 +11,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-PATH_DHF1K = "/home/"
+PATH_DHF1K = "/home/dataset/"
 TRAIN = 'train'
 VAL = 'val'
 
