@@ -1,6 +1,6 @@
 FROM tensorflow/tensorflow:latest-gpu-py3
-WORKDIR /salgan_pytorch
-ADD requirements.txt /salgan_pytorch/
+WORKDIR /home
+ADD requirements.txt 
 RUN apt update -y; apt install -y \
 	libsm6 \
 	libxext6 \
