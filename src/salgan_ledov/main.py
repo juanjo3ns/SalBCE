@@ -1,8 +1,8 @@
 import sys
 import torch
-from ..utils.salgan_generator import create_model
-from ..utils.salgan_utils import load_image, postprocess_prediction
-from ..utils.salgan_utils import normalize_map
+from utils.salgan_generator import create_model
+from utils.salgan_utils import load_image, postprocess_prediction
+from utils.salgan_utils import normalize_map
 
 import numpy as np
 import os
@@ -27,7 +27,7 @@ def main():
 		os.makedirs(OUTPUT_PATH)
 
 	# init model with pre-trained weights
-	model = salgan_generator.create_model()
+	model = create_model()
 
 	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS))
 	model.eval()
@@ -38,11 +38,11 @@ def main():
 		model.cuda()
 
 	# load and preprocess images in folder
-	for y in range(601,701):
-		if not os.path.exists(os.path.join(OUTPUT_PATH,str(y))):
-			os.makedirs(os.path.join(OUTPUT_PATH,str(y)))
-		for i, name in enumerate(os.listdir(os.path.join(INPUT_PATH,'{:03d}'.format(y)))):
-			filename = os.path.join(INPUT_PATH,'{:03d}'.format(y), name)
+	for y in os.listdir(INPUT_PATH):
+		if not os.path.exists(os.path.join(OUTPUT_PATH,y)):
+			os.makedirs(os.path.join(OUTPUT_PATH,y))
+		for i, name in enumerate(os.listdir(os.path.join(INPUT_PATH,y))):
+			filename = os.path.join(INPUT_PATH,name,'{:04d}.png'.format(i))
 			image_tensor, image_size = load_image(filename)
 
 			if USE_GPU:

@@ -12,6 +12,8 @@ services:
       - /home/enric/Downloads/juanjo/DATASETS/LEDOV:/home/dataset
       - /home/enric/Downloads/juanjo/TRAINED_MODELS/:/home/code/trained_models
       - /home/enric/Downloads/juanjo/SALIENCY_MAPS/:/home/saliency_maps
+    environment:
+      - PYTHONPATH=/home/code
     ports:
       - 6006:6006
       - 6007:6007
