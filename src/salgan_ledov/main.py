@@ -11,7 +11,7 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = '../trained_models/baseline_weights/gen_model.pt'
+PATH_PYTORCH_WEIGHTS = os.path.join(os.environ['PYTHONPATH'],'trained_models/baseline_weights/gen_model.pt')
 INPUT_PATH = '/home/dataset/ledov_frames/'
 OUTPUT_PATH = '/home/saliency_maps/saliencySALGAN_LEDOV_baseline/'
 USE_GPU=True
@@ -42,7 +42,7 @@ def main():
 		if not os.path.exists(os.path.join(OUTPUT_PATH,y)):
 			os.makedirs(os.path.join(OUTPUT_PATH,y))
 		for i, name in enumerate(os.listdir(os.path.join(INPUT_PATH,y))):
-			filename = os.path.join(INPUT_PATH,name,'{:04d}.png'.format(i))
+			filename = os.path.join(INPUT_PATH,y,'{:04d}.jpg'.format(i+1))
 			image_tensor, image_size = load_image(filename)
 
 			if USE_GPU:
@@ -67,7 +67,7 @@ def main():
 			# save saliency
 
 			cv2.imwrite(os.path.join(OUTPUT_PATH,str(y),name), saliency)
-			print("Processed image {} from video {}".format(i,y), end="\r")
+			print("Processed image {} from video {}".format(i+1,y), end="\r")
 			sys.stdout.flush()
 
 if __name__ == '__main__':
