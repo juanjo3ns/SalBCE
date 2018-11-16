@@ -1,6 +1,6 @@
 FROM tensorflow/tensorflow:latest-gpu-py3
 WORKDIR /home
-ADD requirements.txt 
+ADD requirements.txt .
 RUN apt update -y; apt install -y \
 	libsm6 \
 	libxext6 \
