@@ -7,7 +7,6 @@ services:
     container_name: salgan_pytorch
     working_dir: /home
     build: .
-    user: ${CURRENT_UID}
     volumes:
       - ../src:/home/code
       - /home/enric/Downloads/juanjo/DATASETS/LEDOV:/home/dataset

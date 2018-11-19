@@ -72,7 +72,7 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--path_out", default='../trained_models/salgan_bce',
+    parser.add_argument("--path_out", default='../trained_models/salgan_ledov',
                 type=str,
                 help="""set output path for the trained model""")
     parser.add_argument("--batch_size", default=15,
