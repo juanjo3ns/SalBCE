@@ -41,34 +41,34 @@ def main():
 	for y in os.listdir(INPUT_PATH):
 		if not os.path.exists(os.path.join(OUTPUT_PATH,y)):
 			os.makedirs(os.path.join(OUTPUT_PATH,y))
-		for i, name in enumerate(os.listdir(os.path.join(INPUT_PATH,y))):
-			filename = os.path.join(INPUT_PATH,y,'{:04d}.jpg'.format(i+1))
-			image_tensor, image_size = load_image(filename)
+			for i, name in enumerate(os.listdir(os.path.join(INPUT_PATH,y))):
+				filename = os.path.join(INPUT_PATH,y,'{:04d}.jpg'.format(i+1))
+				image_tensor, image_size = load_image(filename)
 
-			if USE_GPU:
-				image_tensor = image_tensor.cuda()
+				if USE_GPU:
+					image_tensor = image_tensor.cuda()
 
-			# run model inference
-			prediction = model.forward(image_tensor[None, ...]) # add extra batch dimension
+				# run model inference
+				prediction = model.forward(image_tensor[None, ...]) # add extra batch dimension
 
-			# get result to cpu and squeeze dimensions
-			if USE_GPU:
-				prediction = prediction.squeeze().data.cpu().numpy()
-			else:
-				prediction = prediction.squeeze().data.numpy()
+				# get result to cpu and squeeze dimensions
+				if USE_GPU:
+					prediction = prediction.squeeze().data.cpu().numpy()
+				else:
+					prediction = prediction.squeeze().data.numpy()
 
-			# postprocess
-			# first normalize [0,1]
-			prediction = normalize_map(prediction)
-			saliency = postprocess_prediction(prediction, image_size)
-			saliency = normalize_map(saliency)
-			saliency *= 255
-			saliency = saliency.astype(np.uint8)
-			# save saliency
+				# postprocess
+				# first normalize [0,1]
+				prediction = normalize_map(prediction)
+				saliency = postprocess_prediction(prediction, image_size)
+				saliency = normalize_map(saliency)
+				saliency *= 255
+				saliency = saliency.astype(np.uint8)
+				# save saliency
 
-			cv2.imwrite(os.path.join(OUTPUT_PATH,str(y),name), saliency)
-			print("Processed image {} from video {}".format(i+1,y), end="\r")
-			sys.stdout.flush()
+				cv2.imwrite(os.path.join(OUTPUT_PATH,str(y),name), saliency)
+				print("Processed image {} from video {}".format(i+1,y), end="\r")
+				sys.stdout.flush()
 
 if __name__ == '__main__':
 	main()
