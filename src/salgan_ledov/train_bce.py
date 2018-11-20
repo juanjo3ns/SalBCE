@@ -26,7 +26,7 @@ TEST = 'test'
 def train_eval(mode, model, optimizer, dataloader):
     if mode == TRAIN:
         N = len(ds_train)/batch_size
-        model.train()
+        model.train()serveo.net:6007
     else:
         N = len(ds_validate)/batch_size
         model.eval()
