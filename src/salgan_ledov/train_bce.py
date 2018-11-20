@@ -38,9 +38,10 @@ def train_eval(mode, model, optimizer, dataloader):
 		inputs = X[0].cuda()
 		# noramlize saliency maps values between [0,1]
 		gt_maps = X[1].cuda()/255
-
+		
 		predictions = model.forward(inputs).squeeze()
-
+		if not (predictions.shape == torch.Size([10, 192, 256]) or predictions.shape == torch.Size([5, 192, 256])):
+			embed()
 		# reduce size for loss
 		reduce_size = AvgPool2d((4,4))
 		pred_ = reduce_size(predictions)
@@ -129,6 +130,7 @@ if __name__ == '__main__':
 	model.load_state_dict(torch.load('../trained_models/baseline_weights/gen_model.pt'))
 	model.train()
 	model.cuda()
+	#allows you to enable the inbuilt cudnn auto-tuner to find the best algorithm to use for your hardware
 	cudnn.benchmark = True
 
 	# loss =====================================================================
