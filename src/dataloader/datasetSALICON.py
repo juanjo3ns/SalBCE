@@ -46,6 +46,7 @@ class SALICON(Dataset):
 
 	def __getitem__(self, index):
 		# set path
+
 		ima_name = self.list_names[index]+'.jpg'
 		rgb_ima = os.path.join(self.path_images, ima_name)
 		# image = cv2.imread(rgb_ima)
@@ -54,9 +55,12 @@ class SALICON(Dataset):
 		# saliency = cv2.imread(os.path.join(self.path_saliency, ima_name), 0)
 		image = Image.open(rgb_ima)
 		saliency = Image.open(sal_path)
+		image = image.convert('RGB')
+		# print(image.size, saliency.size)
 		if self.transform:
 			image = self.transform(image)
 			saliency = self.transform(saliency)
+		# print(image.shape, saliency.shape)
 		#
 		# if self.transform:
 		# 	image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
@@ -100,7 +104,11 @@ class SALICON(Dataset):
 		else:
 			return image, saliency
 
-
+torchvision_transform = transforms.Compose([
+	transforms.Resize((192, 256)),
+	transforms.RandomHorizontalFlip(p=1),
+	transforms.ToTensor()
+])
 
 
 if __name__ == '__main__':

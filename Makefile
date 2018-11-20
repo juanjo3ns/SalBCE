@@ -8,3 +8,7 @@ run_e:
 	docker-compose -f docker/docker-composeE.yml up -d
 devel:
 	docker exec -it salgan_pytorch bash
+down_jj:
+	docker-compose -f docker/docker-composeJJ.yml down -v
+down_e:
+	docker-compose -f docker/docker-composeE.yml down -v
