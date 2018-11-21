@@ -1,1 +1,4 @@
 *.pyc
+src/dataloader/__pycache__/
+src/utils/__pycache__/
+
