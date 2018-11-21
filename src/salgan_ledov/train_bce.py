@@ -40,7 +40,7 @@ def train_eval(mode, model, optimizer, dataloader):
 		gt_maps = X[1].cuda()/255
 		
 		predictions = model.forward(inputs).squeeze()
-		if not (predictions.shape == torch.Size([10, 192, 256]) or predictions.shape == torch.Size([5, 192, 256])):
+		if not predictions.shape == torch.Size([9, 192, 256]):
 			embed()
 		# reduce size for loss
 		reduce_size = AvgPool2d((4,4))
@@ -77,7 +77,7 @@ if __name__ == '__main__':
 	parser.add_argument("--path_out", default='../trained_models/salgan_ledov',
 				type=str,
 				help="""set output path for the trained model""")
-	parser.add_argument("--batch_size", default=10,
+	parser.add_argument("--batch_size", default=9,
 				type=int,
 				help="""Set batch size""")
 	parser.add_argument("--n_epochs", default=200, type=int,
