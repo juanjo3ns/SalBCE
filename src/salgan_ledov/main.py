@@ -11,11 +11,12 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = os.path.join(os.environ['PYTHONPATH'],'trained_models/baseline_weights/gen_model.pt')
-INPUT_PATH = '/home/dataset/ledov_frames/'
-OUTPUT_PATH = '/home/saliency_maps/saliencySALGAN_LEDOV_baseline/'
+PATH_PYTORCH_WEIGHTS = os.path.join(os.environ['PYTHONPATH'],'trained_models/salgan_salicon_3epochs/models/best.pt')
+INPUT_PATH = '/home/dataset/LEDOV/ledov_frames/'
+OUTPUT_PATH = '/home/saliency_maps/salgan_ledov_3epochssalicon/'
 USE_GPU=True
-
+numTraining = 456
+numValidation = 41
 
 def main():
 	"""
@@ -29,16 +30,16 @@ def main():
 	# init model with pre-trained weights
 	model = create_model()
 
-	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS))
+	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS)['state_dict'])
 	model.eval()
 
 
 	# if GPU is enabled
 	if USE_GPU:
 		model.cuda()
-
+	videos = os.listdir(INPUT_PATH)
 	# load and preprocess images in folder
-	for y in os.listdir(INPUT_PATH):
+	for y in videos[numTraining:(numTraining+numValidation)]:
 		if not os.path.exists(os.path.join(OUTPUT_PATH,y)):
 			os.makedirs(os.path.join(OUTPUT_PATH,y))
 			for i, name in enumerate(os.listdir(os.path.join(INPUT_PATH,y))):

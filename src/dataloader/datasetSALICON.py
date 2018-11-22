@@ -12,10 +12,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-# from albumentations import Compose, RandomCrop, Normalize, HorizontalFlip, Resize, VerticalFlip
 
-# constants
-PATH_SALICON = "/home/dataset/"
+PATH_SALICON = "/home/dataset/SALICON/"
 
 class SALICON(Dataset):
 	def __init__(self, mode='train', return_path=False, N=None):
@@ -57,28 +55,28 @@ class SALICON(Dataset):
 		return imageProcessing(image, saliency)
 
 
-def imageProcessing(image, saliency):
+	def imageProcessing(image, saliency):
 
-	# image -= self.mean
-	# image = image.convert('RGB')
-	# image = torch.FloatTensor(image)
 
-	image = cv2.resize(image, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
-	saliency = cv2.resize(saliency, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
+		image = cv2.resize(image, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
+		saliency = cv2.resize(saliency, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
 
-	# convert to foat
-	image = image.astype(np.float32)
-	saliency = saliency.astype(np.float32)
+		# convert to foat
+		image = image.astype(np.float32)
+		saliency = saliency.astype(np.float32)
 
-	# remove mean value
-	image -= self.mean
-	embed()
-	# convert to torch Tensor
-	image = torch.FloatTensor(image)
+		# remove mean value
+		image -= self.mean
+		embed()
+		if random.randint(0,2) == 0:
+			[start:end:step,start:end:step,start:end:step]
+			image = image[:,::-1,:]
+		# convert to torch Tensor
+		image = torch.FloatTensor(image)
 
-	# swap channel dimensions
-	image = image.permute(2,0,1)
-	return image,saliency
+		# swap channel dimensions
+		image = image.permute(2,0,1)
+		return image,saliency
 
 if __name__ == '__main__':
 	s = SALICON(mode='val', N=100)

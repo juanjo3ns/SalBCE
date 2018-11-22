@@ -1,8 +1,8 @@
 import sys
 import torch
-from ..utils.salgan_generator import create_model
-from ..utils.salgan_utils import load_image, postprocess_prediction
-from ..utils.salgan_utils import normalize_map
+from utils.salgan_generator import create_model
+from utils.salgan_utils import load_image, postprocess_prediction
+from utils.salgan_utils import normalize_map
 
 import numpy as np
 import os
@@ -11,9 +11,9 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = 'model_weights/gen_model.pt'
-INPUT_PATH = '/salgan_pytorch/data/dhf1k_frames/'
-OUTPUT_PATH = '/salgan_pytorch/data/salganbaseline/'
+PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_salicon_3epochs/models/best.pt'
+INPUT_PATH = '/home/dataset/dhf1k_frames/'
+OUTPUT_PATH = '/home/saliency_maps/salgan_dhf1k_3epochssalicon'
 
 USE_GPU=True
 
@@ -28,9 +28,9 @@ def main():
 		os.makedirs(OUTPUT_PATH)
 
 	# init model with pre-trained weights
-	model = salgan_generator.create_model()
+	model = create_model()
 
-	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS))
+	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS)['state_dict'])
 	model.eval()
 
 

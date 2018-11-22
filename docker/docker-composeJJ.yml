@@ -9,7 +9,7 @@ services:
     build: .
     volumes:
       - ../src:/home/code
-      - /media/eHD/juanjo/DATASETS/SALICON:/home/dataset
+      - /media/eHD/juanjo/DATASETS/:/home/dataset
       - /media/eHD/juanjo/TRAINED_MODELS/:/home/code/trained_models
       - /media/eHD/juanjo/SALIENCY_MAPS/:/home/saliency_maps
     environment:
