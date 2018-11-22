@@ -74,7 +74,7 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_salicon_dataaugmentation',
+	parser.add_argument("--path_out", default='../trained_models/salgan_salicon_daugmfromscr',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=15,
@@ -108,16 +108,9 @@ if __name__ == '__main__':
 	batch_size = args.batch_size
 	n_epochs = args.n_epochs
 
-	#transformation
-	torchvision_transform = transforms.Compose([
-		transforms.Resize((192, 256)),
-		transforms.RandomHorizontalFlip(p=1),
-		transforms.ToTensor()
-	])
-
 	# Datasets for DHF1K
-	ds_train = SALICON(mode=TRAIN, transform=torchvision_transform)
-	ds_validate = SALICON(mode=VAL, transform=torchvision_transform)
+	ds_train = SALICON(mode=TRAIN)
+	ds_validate = SALICON(mode=VAL)
 
 	# Dataloaders
 	dataloader = {
@@ -134,7 +127,7 @@ if __name__ == '__main__':
 	print("Init model...")
 	# init model with pre-trained weights
 	model = create_model()
-	model.load_state_dict(torch.load('../trained_models/salgan_salicon_1/models/best.pt')['state_dict'])
+	model.load_state_dict(torch.load('../trained_models/baseline_weights/gen_model.pt'))
 	model.train()
 	model.cuda()
 	cudnn.benchmark = True

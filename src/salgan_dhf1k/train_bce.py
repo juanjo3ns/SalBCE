@@ -125,7 +125,7 @@ if __name__ == '__main__':
     print("Init model...")
     # init model with pre-trained weights
     model = salgan_generator.create_model()
-    model.load_state_dict(torch.load('../trained_models/salgan_bce/models/best.pt'))
+    model.load_state_dict(torch.load('../trained_models/salgan_bce/models/best.pt')['state_dict'])
     model.train()
     model.cuda()
 	cudnn.benchmark = True

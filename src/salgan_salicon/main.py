@@ -11,10 +11,10 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = '/home/code/trained_models/salgan_salicon_dataaugmentation/models/best.pt'
+PATH_PYTORCH_WEIGHTS = '/home/code/trained_models/baseline_weights/gen_model.pt'
 INPUT_PATH = '/home/dataset/image/images'
 #save saliency with this format: /model_dataset_configuration
-OUTPUT_PATH = '/home/saliency_maps/salgan_salicon_dataaugmentation/'
+OUTPUT_PATH = '/home/saliency_maps/salgan_salicon_daugmfromscr/'
 
 USE_GPU=True
 
@@ -31,7 +31,7 @@ def main():
 	# init model with pre-trained weights
 	model = create_model()
 
-	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS)['state_dict'])
+	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS))
 	model.eval()
 
 
@@ -43,7 +43,7 @@ def main():
 		os.makedirs(OUTPUT_PATH)
 	# load and preprocess images in folder
 	for img in os.listdir(INPUT_PATH):
-		if 'test' in img:
+		if 'val' in img:
 			filename = os.path.join(INPUT_PATH, img)
 			image_tensor, image_size = load_image(filename)
 

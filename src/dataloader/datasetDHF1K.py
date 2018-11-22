@@ -16,10 +16,10 @@ TRAIN = 'train'
 VAL = 'val'
 
 class DHF1K(Dataset):
-    def __init__(self, mode='train',transformation=False, return_path=False, N=None):
+    def __init__(self, mode='train',transformation=None, return_path=False, N=None):
         global PATH_DHF1K
         self.size = (192, 256)
-        self.mean = [103.939, 116.779, 123.68]
+        self.mean = [103.939, 116.779, 123.68] #BGR
         self.path_dataset = PATH_DHF1K
         self.path_images = os.path.join(self.path_dataset, 'dhf1k_frames')
         self.path_saliency = os.path.join(self.path_dataset, 'dhf1k_gt')
@@ -74,6 +74,7 @@ class DHF1K(Dataset):
 
             # swap channel dimensions
             image = image.permute(2,0,1)
+
 
 
         if self.return_path:
