@@ -82,9 +82,9 @@ if __name__ == '__main__':
 				help="""Set batch size""")
 	parser.add_argument("--n_epochs", default=200, type=int,
 				help="""Set total number of epochs""")
-	parser.add_argument("--lr", type=float, default=0.01,
+	parser.add_argument("--lr", type=float, default=0.001,
 				help="""Learning rate for training""")
-	parser.add_argument("--patience", type=int, default=2,
+	parser.add_argument("--patience", type=int, default=4,
 				help="""Patience for learning rate scheduler (default 10)""")
 	args = parser.parse_args()
 

@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 from IPython import embed
 from PIL import Image
+from random import randint
 
 import matplotlib.pylab as plt
 
@@ -12,8 +13,37 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-
+size = (192, 256)
+# BGR MODE
+mean = [103.939, 116.779, 123.68]
 PATH_SALICON = "/home/dataset/SALICON/"
+
+def imageProcessing(image, saliency):
+
+
+	image = cv2.resize(image, (size[1], size[0]), interpolation=cv2.INTER_AREA).astype(np.float32)
+	saliency = cv2.resize(saliency, (size[1], size[0]), interpolation=cv2.INTER_AREA).astype(np.float32)
+
+	# remove mean value
+	image -= mean
+	augmentation = randint(0,2)
+	if augmentation == 0:
+		image = image[:,::-1,:]
+		# image = np.ascontiguousarray(image)
+		saliency = saliency[:,::-1]
+	elif augmentation == 1:
+		image = image[::-1,:,:]
+		# image = np.ascontiguousarray(image)
+		saliency = saliency[::-1,:]
+	# convert to torch Tensor
+	image = np.ascontiguousarray(image)
+	saliency = np.ascontiguousarray(saliency)
+	
+	image = torch.FloatTensor(image)
+
+	# swap channel dimensions
+	image = image.permute(2,0,1)
+	return image,saliency
 
 class SALICON(Dataset):
 	def __init__(self, mode='train', return_path=False, N=None):
@@ -46,37 +76,10 @@ class SALICON(Dataset):
 		# Image and saliency map paths
 		rgb_ima = os.path.join(self.path_images, self.list_names[index]+'.jpg')
 		sal_path = os.path.join(self.path_saliency, self.list_names[index]+'.png')
-		# Load image and saliency map
-		# image = Image.open(rgb_ima)
-		# saliency = Image.open(sal_path).convert('LA')
+
 		image = cv2.imread(rgb_ima)
 		saliency = cv2.imread(sal_path, 0)
-
 		return imageProcessing(image, saliency)
-
-
-	def imageProcessing(image, saliency):
-
-
-		image = cv2.resize(image, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
-		saliency = cv2.resize(saliency, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
-
-		# convert to foat
-		image = image.astype(np.float32)
-		saliency = saliency.astype(np.float32)
-
-		# remove mean value
-		image -= self.mean
-		embed()
-		if random.randint(0,2) == 0:
-			[start:end:step,start:end:step,start:end:step]
-			image = image[:,::-1,:]
-		# convert to torch Tensor
-		image = torch.FloatTensor(image)
-
-		# swap channel dimensions
-		image = image.permute(2,0,1)
-		return image,saliency
 
 if __name__ == '__main__':
 	s = SALICON(mode='val', N=100)
