@@ -11,8 +11,8 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = '/home/code/trained_models/baseline_weights/gen_model.pt'
-INPUT_PATH = '/home/dataset/image/images'
+PATH_PYTORCH_WEIGHTS = '/home/code/trained_models/salgan_salicon_daugmfromscr/models/best.pt'
+INPUT_PATH = '/home/dataset/SALICON/image/images'
 #save saliency with this format: /model_dataset_configuration
 OUTPUT_PATH = '/home/saliency_maps/salgan_salicon_daugmfromscr/'
 
@@ -31,7 +31,7 @@ def main():
 	# init model with pre-trained weights
 	model = create_model()
 
-	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS))
+	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS)['state_dict'])
 	model.eval()
 
 

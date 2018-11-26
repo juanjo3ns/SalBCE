@@ -14,7 +14,7 @@ from torch.nn import AvgPool2d
 from torch.nn.modules.loss import BCELoss
 import torch.backends.cudnn as cudnn
 from torch.optim import SGD
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
 
 
 from IPython import embed
@@ -62,7 +62,7 @@ def train_eval(mode, model, optimizer, dataloader):
 			optimizer.zero_grad()
 
 
-		print("\t{}/{} loss:{}".format(i, int(N), loss.item()))
+		print("\t{}/{} loss:{}".format(i, int(N), loss.item()), end="\r")
 		total_loss.append(loss.item())
 
 	total_loss=np.mean(total_loss)
@@ -74,18 +74,18 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_salicon_daugmfromscr',
+	parser.add_argument("--path_out", default='../trained_models/salgan_salicon_daugmfromscr2',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=15,
 				type=int,
 				help="""Set batch size""")
-	parser.add_argument("--n_epochs", default=200, type=int,
+	parser.add_argument("--n_epochs", default=50, type=int,
 				help="""Set total number of epochs""")
-	parser.add_argument("--lr", type=float, default=0.001,
+	parser.add_argument("--lr", type=float, default=0.01,
 				help="""Learning rate for training""")
-	parser.add_argument("--patience", type=int, default=4,
-				help="""Patience for learning rate scheduler (default 10)""")
+	parser.add_argument("--patience", type=int, default=3,
+				help="""Patience for learning rate scheduler (default 3)""")
 	args = parser.parse_args()
 
 
@@ -143,8 +143,12 @@ if __name__ == '__main__':
 			print(i, a, p.shape)
 			decoder_parameters.append(p)
 
+	# optimizer parameters, added nesterov momentum
 	optimizer = SGD(decoder_parameters,
-					lr = args.lr, momentum=0.9, weight_decay=0.00001)
+					lr = args.lr,
+					momentum=0.9,
+					weight_decay=0.00001,
+					nesterov=True)
 
 	# set learning rate scheduler
 	# ReduceLROnPlateau(
@@ -154,6 +158,9 @@ if __name__ == '__main__':
 		# patience (int) num epochs sense millora a partir dels quals es redueix lr,
 		# verbose (bool),
 	# )
+
+	#scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
+
 	scheduler = ReduceLROnPlateau(optimizer,
 								'min',
 								patience=args.patience,
@@ -163,6 +170,7 @@ if __name__ == '__main__':
 
 	# main loop training =======================================================
 	for id_epoch in range(n_epochs):
+		#scheduler.step()
 		for mode in [VAL, TRAIN]:
 			# select dataloader
 			data_iterator = dataloader[mode]
@@ -180,17 +188,15 @@ if __name__ == '__main__':
 			# 					metrics[metric], id_epoch)
 
 			# get epoch loss
-			print("{} epoch {}".format(mode, id_epoch))
-
-			print("-----------")
+			print("--> {} epoch {}".format(mode, id_epoch))
 
 			epoch_loss = train_eval(mode, model, optimizer, dataloader)
 
 			lr = list(get_lr_optimizer(optimizer))[0]
 			print("-----------")
-			print("Done! {} epoch {} loss {}".format(mode, id_epoch, epoch_loss))
+			print("Done! {} epoch {} loss {} lr {}".format(mode, id_epoch, epoch_loss, lr))
 			send("{} epoch {}/{} loss {}".format(mode, id_epoch, n_epochs, epoch_loss))
-			print("\n")
+
 
 			# record loss
 			log_value("loss/{}".format(mode), epoch_loss, id_epoch)
@@ -199,12 +205,14 @@ if __name__ == '__main__':
 				log_histogram("Layer {}".format(v), model.state_dict()[v], id_epoch)
 
 			save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
-			scheduler.step(epoch_loss)
+
 			# store model if val loss improves
 			if mode==VAL:
+
 				if best_loss > epoch_loss:
 					# update loss
 					best_loss = epoch_loss
 
 					save_model(model, optimizer, id_epoch, path_out, name_model='best')
-					# scheduler.step(epoch_loss)
+
+				scheduler.step(epoch_loss)
