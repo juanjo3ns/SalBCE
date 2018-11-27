@@ -11,10 +11,10 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = '/home/code/trained_models/salgan_salicon_daugmfromscr/models/best.pt'
+PATH_PYTORCH_WEIGHTS = '/home/code/trained_models/salgan_salicon_daugmfromscr3/models/best.pt'
 INPUT_PATH = '/home/dataset/SALICON/image/images'
 #save saliency with this format: /model_dataset_configuration
-OUTPUT_PATH = '/home/saliency_maps/salgan_salicon_daugmfromscr/'
+OUTPUT_PATH = '/home/saliency_maps/salgan_salicon_daugmfromscr3/'
 
 USE_GPU=True
 
@@ -71,6 +71,7 @@ def main():
 			cv2.imwrite(os.path.join(OUTPUT_PATH,img), saliency)
 			print("Processed image {} ".format(img), end="\r")
 			sys.stdout.flush()
+	print("\n")
 
 if __name__ == '__main__':
 	main()

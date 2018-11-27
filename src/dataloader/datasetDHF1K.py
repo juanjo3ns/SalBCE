@@ -11,12 +11,12 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-PATH_DHF1K = "/home/dataset/"
+PATH_DHF1K = "/home/dataset/DHF1K/"
 TRAIN = 'train'
 VAL = 'val'
 
 class DHF1K(Dataset):
-    def __init__(self, mode='train',transformation=None, return_path=False, N=None):
+    def __init__(self, mode='train',transformation=False, return_path=False, N=None):
         global PATH_DHF1K
         self.size = (192, 256)
         self.mean = [103.939, 116.779, 123.68] #BGR

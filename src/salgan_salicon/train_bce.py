@@ -39,7 +39,7 @@ def train_eval(mode, model, optimizer, dataloader):
 		inputs = X[0].cuda()
 		# noramlize saliency maps values between [0,1]
 		gt_maps = X[1].cuda()/255
-
+		embed()
 		predictions = model.forward(inputs).squeeze()
 
 		# reduce size for loss
@@ -74,7 +74,7 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_salicon_daugmfromscr2',
+	parser.add_argument("--path_out", default='../trained_models/salgan_salicon_daugmfromscr3',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=15,
@@ -84,7 +84,7 @@ if __name__ == '__main__':
 				help="""Set total number of epochs""")
 	parser.add_argument("--lr", type=float, default=0.01,
 				help="""Learning rate for training""")
-	parser.add_argument("--patience", type=int, default=3,
+	parser.add_argument("--patience", type=int, default=5,
 				help="""Patience for learning rate scheduler (default 3)""")
 	args = parser.parse_args()
 
@@ -204,7 +204,7 @@ if __name__ == '__main__':
 			for v in model.state_dict():
 				log_histogram("Layer {}".format(v), model.state_dict()[v], id_epoch)
 
-			save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
+			#save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
 
 			# store model if val loss improves
 			if mode==VAL:
