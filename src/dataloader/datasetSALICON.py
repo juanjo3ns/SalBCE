@@ -73,9 +73,9 @@ class SALICON(Dataset):
 
 		if N is not None:
 			self.list_names = list_names[:N]
-
+		embed()
 		print("Init dataset in mode {}".format(mode))
-		print("\t total of {} images.".format(list_names.shape[0]))
+		print("\t total of {} images.".format(self.list_names.shape[0]))
 
 	def __len__(self):
 		return self.list_names.shape[0]
