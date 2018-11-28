@@ -4,9 +4,6 @@ import cv2
 
 import numpy as np
 from IPython import embed
-from PIL import Image
-from random import randint
-from scipy import ndimage
 
 import matplotlib.pylab as plt
 
@@ -21,33 +18,12 @@ PATH_SALICON = "/home/dataset/SALICON/"
 
 def imageProcessing(image, saliency):
 
-
 	image = cv2.resize(image, (size[1], size[0]), interpolation=cv2.INTER_AREA).astype(np.float32)
 	saliency = cv2.resize(saliency, (size[1], size[0]), interpolation=cv2.INTER_AREA).astype(np.float32)
 
 	# remove mean value
 	image -= mean
-	augmentation = randint(0,3)
-	if augmentation == 0:
-		image = image[:,::-1,:]
-		saliency = saliency[:,::-1]
-	elif augmentation == 1:
-		image = image[::-1,:,:]
-		saliency = saliency[::-1,:]
-	elif augmentation == 2:
-		image = ndimage.rotate(image, 45)
-		saliency = ndimage.rotate(saliency, 45)
-		sqr = image.shape[0]
-		start1 = int((sqr-192)/2)+1
-		end1 = sqr-int((sqr-192)/2)
-		start2 = int((sqr-256)/2)+1
-		end2 = sqr-int((sqr-256)/2)
-		image = image[start1:end1, start2:end2,:]
-		saliency = saliency[start1:end1, start2:end2]
-	# convert to torch Tensor
-	image = np.ascontiguousarray(image)
-	saliency = np.ascontiguousarray(saliency)
-
+	# transform to tensor
 	image = torch.FloatTensor(image)
 
 	# swap channel dimensions

@@ -12,7 +12,7 @@ class Discriminator(Module):
     def __init__(self):
 
         super(Discriminator, self).__init__()
-        self.conv1_1 = Conv2d(1, 3, kernel_size=(1, 1), stride=(1, 1), padding=(1, 1))
+        self.conv1_1 = Conv2d(4, 3, kernel_size=(1, 1), stride=(1, 1), padding=(1, 1))
         self.conv1_2 = Conv2d(3, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
 
         self.conv2_1 = Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
@@ -30,16 +30,16 @@ class Discriminator(Module):
         self.sigmoid = Sigmoid()
 
     def forward(self, x):
-        x = F.relu(self.conv1_1(x))
-        x = F.relu(self.conv1_2(x))
+        x = F.leaky_relu(self.conv1_1(x))
+        x = F.leaky_relu(self.conv1_2(x))
         x = self.pool(x)
 
-        x = F.relu(self.conv2_1(x))
-        x = F.relu(self.conv2_2(x))
+        x = F.leaky_relu(self.conv2_1(x))
+        x = F.leaky_relu(self.conv2_2(x))
         x = self.pool(x)
 
-        x = F.relu(self.conv3_1(x))
-        x = F.relu(self.conv3_2(x))
+        x = F.leaky_relu(self.conv3_1(x))
+        x = F.leaky_relu(self.conv3_2(x))
         x = self.pool(x)
 
         # flatten conv

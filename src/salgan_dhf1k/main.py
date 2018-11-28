@@ -11,9 +11,9 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_salicon_3epochs/models/best.pt'
-INPUT_PATH = '/home/dataset/dhf1k_frames/'
-OUTPUT_PATH = '/home/saliency_maps/salgan_dhf1k_3epochssalicon'
+PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_dhf1k_from27/models/best1.pt'
+INPUT_PATH = '/home/dataset/DHF1K/dhf1k_frames/'
+OUTPUT_PATH = '/home/saliency_maps/salgan_dhf1k_from27'
 
 USE_GPU=True
 
@@ -70,6 +70,7 @@ def main():
 			cv2.imwrite(os.path.join(OUTPUT_PATH,str(y),name), saliency)
 			print("Processed image {} from video {}".format(i,y), end="\r")
 			sys.stdout.flush()
+	print("\n")
 
 if __name__ == '__main__':
 	main()

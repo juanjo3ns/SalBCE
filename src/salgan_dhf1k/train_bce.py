@@ -72,7 +72,7 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_dhf1k_from27',
+	parser.add_argument("--path_out", default='../trained_models/salgan_dhf1k_from27daugm',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=15,
@@ -205,5 +205,5 @@ if __name__ == '__main__':
 					# update loss
 					best_loss = epoch_loss
 
-					save_model(model, optimizer, id_epoch, path_out, name_model='best1')
+					save_model(model, optimizer, id_epoch, path_out, name_model='best')
 				scheduler.step(epoch_loss)

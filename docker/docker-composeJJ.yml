@@ -7,6 +7,7 @@ services:
     container_name: salgan_pytorch
     working_dir: /home
     build: .
+    ipc: host
     volumes:
       - ../src:/home/code
       - /media/eHD/juanjo/DATASETS/:/home/dataset
