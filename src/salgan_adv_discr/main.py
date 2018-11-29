@@ -1,8 +1,8 @@
 import sys
 import torch
-from utils.salgan_generator import create_model
-from utils.salgan_utils import load_image, postprocess_prediction
-from utils.salgan_utils import normalize_map
+import salgan_generator
+from salgan_utils import load_image, postprocess_prediction
+from evaluation_metrics.utils import normalize_map
 
 import numpy as np
 import os
@@ -11,11 +11,13 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = '/home/code/trained_models/salgan_salicon_3epochs/models/best.pt'
-INPUT_PATH = '/home/dataset/SALICON/image/images'
-#save saliency with this format: /model_dataset_configuration
-OUTPUT_PATH = '/home/saliency_maps/salgan_salicon_3epochs/'
-
+# parameters for demo inference=================================================
+# PATH_PYTORCH_WEIGHTS = 'model_weights/gen_model.pt'
+# PATH_SAMPLE_IMAGES = 'sample_images'
+# PATH_SAMPLE_SALIENCY = 'sample_saliency'
+PATH_PYTORCH_WEIGHTS = 'model_weights/gen_model.pt'
+INPUT_PATH = '/salgan_pytorch/data/dhf1k_frames/'
+OUTPUT_PATH = '/salgan_pytorch/data/salganbaseline/'
 USE_GPU=True
 
 
@@ -29,9 +31,9 @@ def main():
 		os.makedirs(OUTPUT_PATH)
 
 	# init model with pre-trained weights
-	model = create_model()
+	model = salgan_generator.create_model()
 
-	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS)['state_dict'])
+	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS))
 	model.eval()
 
 
@@ -39,12 +41,12 @@ def main():
 	if USE_GPU:
 		model.cuda()
 
-	if not os.path.exists(OUTPUT_PATH):
-		os.makedirs(OUTPUT_PATH)
 	# load and preprocess images in folder
-	for img in os.listdir(INPUT_PATH):
-		if 'val' in img:
-			filename = os.path.join(INPUT_PATH, img)
+	for y in range(601,701):
+		if not os.path.exists(os.path.join(OUTPUT_PATH,str(y))):
+			os.makedirs(os.path.join(OUTPUT_PATH,str(y)))
+		for i, name in enumerate(os.listdir(os.path.join(INPUT_PATH,'{:03d}'.format(y)))):
+			filename = os.path.join(INPUT_PATH,'{:03d}'.format(y), name)
 			image_tensor, image_size = load_image(filename)
 
 			if USE_GPU:
@@ -68,10 +70,9 @@ def main():
 			saliency = saliency.astype(np.uint8)
 			# save saliency
 
-			cv2.imwrite(os.path.join(OUTPUT_PATH,img), saliency)
-			print("Processed image {} ".format(img), end="\r")
+			cv2.imwrite(os.path.join(OUTPUT_PATH,str(y),name), saliency)
+			print("Processed image {} from video {}".format(i,y), end="\r")
 			sys.stdout.flush()
-	print("\n")
 
 if __name__ == '__main__':
 	main()

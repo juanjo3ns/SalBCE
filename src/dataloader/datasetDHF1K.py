@@ -69,26 +69,26 @@ class DHF1K(Dataset):
 
 			# remove mean value
 			image -= self.mean
-			augmentation = randint(0,3)
-			if augmentation == 0:
-				image = image[:,::-1,:]
-				saliency = saliency[:,::-1]
-			elif augmentation == 1:
-				image = image[::-1,:,:]
-				saliency = saliency[::-1,:]
-			elif augmentation == 2:
-				image = ndimage.rotate(image, 45)
-				saliency = ndimage.rotate(saliency, 45)
-				sqr = image.shape[0]
-				start1 = int((sqr-192)/2)+1
-				end1 = sqr-int((sqr-192)/2)
-				start2 = int((sqr-256)/2)+1
-				end2 = sqr-int((sqr-256)/2)
-				image = image[start1:end1, start2:end2,:]
-				saliency = saliency[start1:end1, start2:end2]
-			# convert to torch Tensor
-			image = np.ascontiguousarray(image)
-			saliency = np.ascontiguousarray(saliency)
+			# augmentation = randint(0,3)
+			# if augmentation == 0:
+			# 	image = image[:,::-1,:]
+			# 	saliency = saliency[:,::-1]
+			# elif augmentation == 1:
+			# 	image = image[::-1,:,:]
+			# 	saliency = saliency[::-1,:]
+			# elif augmentation == 2:
+			# 	image = ndimage.rotate(image, 45)
+			# 	saliency = ndimage.rotate(saliency, 45)
+			# 	sqr = image.shape[0]
+			# 	start1 = int((sqr-192)/2)+1
+			# 	end1 = sqr-int((sqr-192)/2)
+			# 	start2 = int((sqr-256)/2)+1
+			# 	end2 = sqr-int((sqr-256)/2)
+			# 	image = image[start1:end1, start2:end2,:]
+			# 	saliency = saliency[start1:end1, start2:end2]
+			# # convert to torch Tensor
+			# image = np.ascontiguousarray(image)
+			# saliency = np.ascontiguousarray(saliency)
 			# convert to torch Tensor
 			image = torch.FloatTensor(image)
 

@@ -72,13 +72,13 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_dhf1k_from27daugm',
+	parser.add_argument("--path_out", default='../trained_models/salgan_dhf1k_from3',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=15,
 				type=int,
 				help="""Set batch size""")
-	parser.add_argument("--n_epochs", default=10, type=int,
+	parser.add_argument("--n_epochs", default=2, type=int,
 				help="""Set total number of epochs""")
 	parser.add_argument("--lr", type=float, default=0.01,
 				help="""Learning rate for training""")
@@ -125,7 +125,7 @@ if __name__ == '__main__':
 	print("Init model...")
 	# init model with pre-trained weights
 	model = create_model()
-	model.load_state_dict(torch.load('../trained_models/salgan_salicon_daugmfromscr3/models/best.pt')['state_dict'])
+	model.load_state_dict(torch.load('../trained_models/salgan_salicon_/models/best.pt')['state_dict'])
 	model.train()
 	model.cuda()
 	cudnn.benchmark = True
