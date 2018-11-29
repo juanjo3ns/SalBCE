@@ -38,7 +38,7 @@ def train_eval(mode, model, optimizer, dataloader):
 		inputs = X[0].cuda()
 		# noramlize saliency maps values between [0,1]
 		gt_maps = X[1].cuda()/255
-		
+
 		predictions = model.forward(inputs).squeeze()
 		if not predictions.shape == torch.Size([9, 192, 256]):
 			embed()
@@ -74,13 +74,13 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_ledov_3salicondaugm',
+	parser.add_argument("--path_out", default='../trained_models/salgan_ledov_from27',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=9,
 				type=int,
 				help="""Set batch size""")
-	parser.add_argument("--n_epochs", default=50, type=int,
+	parser.add_argument("--n_epochs", default=3, type=int,
 				help="""Set total number of epochs""")
 	parser.add_argument("--lr", type=float, default=0.001,
 				help="""Learning rate for training""")
@@ -127,7 +127,7 @@ if __name__ == '__main__':
 	print("Init model...")
 	# init model with pre-trained weights
 	model = create_model()
-	model.load_state_dict(torch.load('../trained_models/salgan_salicon_3epochs/models/best.pt')['state_dict'])
+	model.load_state_dict(torch.load('../trained_models/salgan_salicon_27epoch/models/best.pt')['state_dict'])
 	model.train()
 	model.cuda()
 	#allows you to enable the inbuilt cudnn auto-tuner to find the best algorithm to use for your hardware

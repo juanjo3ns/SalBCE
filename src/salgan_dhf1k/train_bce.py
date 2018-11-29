@@ -125,7 +125,7 @@ if __name__ == '__main__':
 	print("Init model...")
 	# init model with pre-trained weights
 	model = create_model()
-	model.load_state_dict(torch.load('../trained_models/salgan_salicon_/models/best.pt')['state_dict'])
+	model.load_state_dict(torch.load('../trained_models/salgan_salicon_3epochs/models/best.pt')['state_dict'])
 	model.train()
 	model.cuda()
 	cudnn.benchmark = True
