@@ -62,7 +62,7 @@ def train_eval(mode, model, optimizer, dataloader):
 			optimizer.zero_grad()
 
 
-		print("\t{}/{} loss:{}".format(i, int(N), loss.item()))
+		print("\t{}/{} loss:{}".format(i, int(N), loss.item()), end="\r")
 		total_loss.append(loss.item())
 
 	total_loss=np.mean(total_loss)
@@ -74,17 +74,17 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_ledov',
+	parser.add_argument("--path_out", default='../trained_models/salgan_ledov_3salicondaugm',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=9,
 				type=int,
 				help="""Set batch size""")
-	parser.add_argument("--n_epochs", default=200, type=int,
+	parser.add_argument("--n_epochs", default=50, type=int,
 				help="""Set total number of epochs""")
-	parser.add_argument("--lr", type=float, default=0.01,
+	parser.add_argument("--lr", type=float, default=0.001,
 				help="""Learning rate for training""")
-	parser.add_argument("--patience", type=int, default=4,
+	parser.add_argument("--patience", type=int, default=3,
 				help="""Patience for learning rate scheduler (default 10)""")
 	args = parser.parse_args()
 
@@ -127,7 +127,7 @@ if __name__ == '__main__':
 	print("Init model...")
 	# init model with pre-trained weights
 	model = create_model()
-	model.load_state_dict(torch.load('../trained_models/baseline_weights/gen_model.pt'))
+	model.load_state_dict(torch.load('../trained_models/salgan_salicon_3epochs/models/best.pt')['state_dict'])
 	model.train()
 	model.cuda()
 	#allows you to enable the inbuilt cudnn auto-tuner to find the best algorithm to use for your hardware
@@ -145,7 +145,10 @@ if __name__ == '__main__':
 			decoder_parameters.append(p)
 
 	optimizer = SGD(decoder_parameters,
-					lr = args.lr, momentum=0.9, weight_decay=0.00001)
+					lr = args.lr,
+					momentum=0.9,
+					weight_decay=0.00001,
+					nesterov=True)
 
 	# set learning rate scheduler
 	# ReduceLROnPlateau(
@@ -181,9 +184,7 @@ if __name__ == '__main__':
 			# 					metrics[metric], id_epoch)
 
 			# get epoch loss
-			print("{} epoch {}".format(mode, id_epoch))
-
-			print("-----------")
+			print("--> {} epoch {}".format(mode, id_epoch))
 
 			epoch_loss = train_eval(mode, model, optimizer, dataloader)
 
@@ -200,7 +201,6 @@ if __name__ == '__main__':
 				log_histogram("Layer {}".format(v), model.state_dict()[v], id_epoch)
 
 			# save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
-			scheduler.step(epoch_loss)
 			# store model if val loss improves
 			if mode==VAL:
 				if best_loss > epoch_loss:
@@ -208,4 +208,4 @@ if __name__ == '__main__':
 					best_loss = epoch_loss
 
 					save_model(model, optimizer, id_epoch, path_out, name_model='best')
-					# scheduler.step(epoch_loss)
+				scheduler.step(epoch_loss)

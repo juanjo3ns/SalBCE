@@ -11,9 +11,9 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = os.path.join(os.environ['PYTHONPATH'],'trained_models/salgan_salicon_3epochs/models/best.pt')
-INPUT_PATH = '/home/dataset/LEDOV/ledov_frames/'
-OUTPUT_PATH = '/home/saliency_maps/salgan_ledov_3epochssalicon/'
+PATH_PYTORCH_WEIGHTS = os.path.join(os.environ['PYTHONPATH'],'trained_models/salgan_ledov_from27/models/best.pt')
+INPUT_PATH = '/home/dataset/ledov_frames/'
+OUTPUT_PATH = '/home/saliency_maps/salgan_ledov_from27'
 USE_GPU=True
 numTraining = 456
 numValidation = 41
