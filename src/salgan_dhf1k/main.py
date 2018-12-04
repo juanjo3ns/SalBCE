@@ -11,9 +11,9 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_salicon_daugmfromscr3/models/best.pt'
+PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_dhf1k_from3/models/best.pt'
 INPUT_PATH = '/home/dataset/DHF1K/dhf1k_frames/'
-OUTPUT_PATH = '/home/saliency_maps/salgan_salicon_dhf1k_from27'
+OUTPUT_PATH = '/home/saliency_maps/salgan_dhf1k_from3'
 
 USE_GPU=True
 

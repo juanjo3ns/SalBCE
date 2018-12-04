@@ -16,15 +16,40 @@ PATH_DHF1K = "/home/dataset/DHF1K/"
 TRAIN = 'train'
 VAL = 'val'
 
+def augmentData(image,saliency):
+	augmentation = randint(0,3)
+	if augmentation == 0:
+		image = image[:,::-1,:]
+		saliency = saliency[:,::-1]
+	elif augmentation == 1:
+		image = image[::-1,:,:]
+		saliency = saliency[::-1,:]
+	elif augmentation == 2:
+		image = ndimage.rotate(image, 45)
+		saliency = ndimage.rotate(saliency, 45)
+		sqr = image.shape[0]
+		start1 = int((sqr-192)/2)+1
+		end1 = sqr-int((sqr-192)/2)
+		start2 = int((sqr-256)/2)+1
+		end2 = sqr-int((sqr-256)/2)
+		image = image[start1:end1, start2:end2,:]
+		saliency = saliency[start1:end1, start2:end2]
+	# convert to torch Tensor
+	image = np.ascontiguousarray(image)
+	saliency = np.ascontiguousarray(saliency)
+	return image, saliency
+
 class DHF1K(Dataset):
-	def __init__(self, mode='train',transformation=False, return_path=False, N=None):
+	def __init__(self, mode='train',transformation=False, return_path=False, N=None, depth=False, d_augm=False):
 		global PATH_DHF1K
 		self.size = (192, 256)
 		self.mean = [103.939, 116.779, 123.68] #BGR
 		self.path_dataset = PATH_DHF1K
 		self.path_images = os.path.join(self.path_dataset, 'dhf1k_frames')
 		self.path_saliency = os.path.join(self.path_dataset, 'dhf1k_gt')
-
+		self.path_depth = os.path.join(self.path_dataset, 'dhf1k_depth')
+		self.depth = depth
+		self.d_augm = d_augm
 		self.transformation = transformation
 		self.return_path = return_path
 
@@ -58,7 +83,7 @@ class DHF1K(Dataset):
 		saliency = cv2.imread(os.path.join(self.path_saliency, str(vid), 'maps', ima_name), 0)
 
 		# apply transformation
-		if self.transformation is not None:
+		if self.transformation:
 			# reshape
 			image = cv2.resize(image, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
 			saliency = cv2.resize(saliency, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
@@ -69,26 +94,23 @@ class DHF1K(Dataset):
 
 			# remove mean value
 			image -= self.mean
-			# augmentation = randint(0,3)
-			# if augmentation == 0:
-			# 	image = image[:,::-1,:]
-			# 	saliency = saliency[:,::-1]
-			# elif augmentation == 1:
-			# 	image = image[::-1,:,:]
-			# 	saliency = saliency[::-1,:]
-			# elif augmentation == 2:
-			# 	image = ndimage.rotate(image, 45)
-			# 	saliency = ndimage.rotate(saliency, 45)
-			# 	sqr = image.shape[0]
-			# 	start1 = int((sqr-192)/2)+1
-			# 	end1 = sqr-int((sqr-192)/2)
-			# 	start2 = int((sqr-256)/2)+1
-			# 	end2 = sqr-int((sqr-256)/2)
-			# 	image = image[start1:end1, start2:end2,:]
-			# 	saliency = saliency[start1:end1, start2:end2]
-			# # convert to torch Tensor
-			# image = np.ascontiguousarray(image)
-			# saliency = np.ascontiguousarray(saliency)
+
+			#Data augmentation if required
+			if self.d_augm:
+				image, saliency = augmentData(image,saliency)
+
+			# Add 4 channel with image depth if required
+			if self.depth:
+				num_image = int(ima_name.split('.')[0])
+				if num_image < 10:
+					ima_name = '0010.png'
+				else: ima_name = '{:04d}.png'.format(int(num_image/10)*10)
+				depth = cv2.imread(os.path.join(self.path_depth,str(vid),ima_name), 0)
+				depth = cv2.resize(depth, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
+				depth = depth.astype(np.float32)
+				depth = np.expand_dims(depth, axis=2)
+				image = np.dstack((image,depth))
+
 			# convert to torch Tensor
 			image = torch.FloatTensor(image)
 

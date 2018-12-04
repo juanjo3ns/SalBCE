@@ -72,17 +72,19 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_dhf1k_from3',
+	parser.add_argument("--path_out", default='../trained_models/salgan_dhf1k_from27DEPTH',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=15,
 				type=int,
 				help="""Set batch size""")
-	parser.add_argument("--n_epochs", default=2, type=int,
+	parser.add_argument("--n_epochs", default=100, type=int,
 				help="""Set total number of epochs""")
-	parser.add_argument("--lr", type=float, default=0.01,
+	parser.add_argument("--depth", default=False, type=bool,
+				help="""Set attribute depth""")
+	parser.add_argument("--lr", type=float, default=0.0001,
 				help="""Learning rate for training""")
-	parser.add_argument("--patience", type=int, default=5,
+	parser.add_argument("--patience", type=int, default=10,
 				help="""Patience for learning rate scheduler (default 10)""")
 	args = parser.parse_args()
 
@@ -105,10 +107,11 @@ if __name__ == '__main__':
 	# data =====================================================================
 	batch_size = args.batch_size
 	n_epochs = args.n_epochs
+	DEPTH = args.depth
 
 	# Datasets for DHF1K
-	ds_train = DHF1K(mode=TRAIN)
-	ds_validate = DHF1K(mode=VAL)
+	ds_train = DHF1K(mode=TRAIN, transformation=True, d_augm=False, depth=DEPTH)
+	ds_validate = DHF1K(mode=VAL, transformation=True, d_augm=False, depth=DEPTH)
 
 	# Dataloaders
 	dataloader = {
@@ -124,11 +127,19 @@ if __name__ == '__main__':
 	# model ====================================================================
 	print("Init model...")
 	# init model with pre-trained weights
-	model = create_model()
-	model.load_state_dict(torch.load('../trained_models/salgan_salicon_3epochs/models/best.pt')['state_dict'])
+	vgg_weights = torch.load('../trained_models/salgan_salicon_daugmfromscr3/models/best.pt')['state_dict']
+	if DEPTH:
+		model = create_model(4)
+		# Mean of RGB weights of first layer with size [64,1,3,3]
+		layer1 = vgg_weights['0.weight']
+		mean_rgb = layer1.mean(dim=1,keepdim=True)
+		vgg_weights['0.weight'] = torch.cat([layer1.cuda(),mean_rgb.cuda()],1)
+	else: model = create_model(3)
+	model.load_state_dict(vgg_weights)
 	model.train()
 	model.cuda()
 	cudnn.benchmark = True
+
 
 	# loss =====================================================================
 	print("BCE criterium...")
@@ -197,8 +208,8 @@ if __name__ == '__main__':
 			log_value("lr/{}".format(mode), lr, id_epoch)
 			for v in model.state_dict():
 				log_histogram("Layer {}".format(v), model.state_dict()[v], id_epoch)
-
-			#save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
+			if (id_epoch%10)==0:
+				save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
 			# store model if val loss improves
 			if mode==VAL:
 				if best_loss > epoch_loss:
