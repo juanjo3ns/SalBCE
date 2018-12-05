@@ -95,10 +95,6 @@ class DHF1K(Dataset):
 			# remove mean value
 			image -= self.mean
 
-			#Data augmentation if required
-			if self.d_augm:
-				image, saliency = augmentData(image,saliency)
-
 			# Add 4 channel with image depth if required
 			if self.depth:
 				num_image = int(ima_name.split('.')[0])
@@ -110,6 +106,10 @@ class DHF1K(Dataset):
 				depth = depth.astype(np.float32)
 				depth = np.expand_dims(depth, axis=2)
 				image = np.dstack((image,depth))
+
+			#Data augmentation if required
+			if self.d_augm:
+				image, saliency = augmentData(image,saliency)
 
 			# convert to torch Tensor
 			image = torch.FloatTensor(image)
@@ -127,13 +127,3 @@ class DHF1K(Dataset):
 
 if __name__ == '__main__':
 	ds = DHF1K()
-
-	print(len(ds))
-	image, saliency = ds[0]
-
-	plt.subplot(1,2,1)
-	plt.imshow(image)
-	plt.subplot(1,2,2)
-	plt.imshow(saliency)
-	plt.show()
-	embed()

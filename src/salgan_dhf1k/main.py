@@ -11,9 +11,10 @@ import cv2
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_dhf1k_from3/models/best.pt'
+PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_dhf1k_from27DEPTH/models/best.pt'
 INPUT_PATH = '/home/dataset/DHF1K/dhf1k_frames/'
-OUTPUT_PATH = '/home/saliency_maps/salgan_dhf1k_from3'
+OUTPUT_PATH = '/home/saliency_maps/salgan_dhf1k_from27DEPTH'
+DEPTH_PATH = '/home/dataset/DHF1K/dhf1k_depth/'
 
 USE_GPU=True
 
@@ -23,12 +24,15 @@ def main():
 	Runs pytorch-SalGAN on a sample images
 
 	"""
+	DEPTH = True
 	# create output file
 	if not os.path.exists(OUTPUT_PATH):
 		os.makedirs(OUTPUT_PATH)
 
 	# init model with pre-trained weights
-	model = create_model()
+	if DEPTH:
+		model = create_model(4)
+	else: model = create_model(3)
 
 	model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS)['state_dict'])
 	model.eval()
@@ -45,6 +49,17 @@ def main():
 		for i, name in enumerate(os.listdir(os.path.join(INPUT_PATH,'{:03d}'.format(y)))):
 			filename = os.path.join(INPUT_PATH,'{:03d}'.format(y), name)
 			image_tensor, image_size = load_image(filename)
+			if DEPTH:
+				num_image = int(name.split('.')[0])
+				if num_image < 10:
+					ima_name = '0010.png'
+				else: ima_name = '{:04d}.png'.format(int(num_image/10)*10)
+				depth = cv2.imread(os.path.join(DEPTH_PATH,str(y),ima_name), 0)
+				depth = cv2.resize(depth, (256, 192), interpolation=cv2.INTER_AREA)
+				depth = depth.astype(np.float32)
+				depth = np.expand_dims(depth, axis=0)
+				depth = torch.FloatTensor(depth)
+				image_tensor = torch.cat([image_tensor,depth],0)
 
 			if USE_GPU:
 				image_tensor = image_tensor.cuda()

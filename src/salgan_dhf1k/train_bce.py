@@ -81,7 +81,9 @@ if __name__ == '__main__':
 	parser.add_argument("--n_epochs", default=100, type=int,
 				help="""Set total number of epochs""")
 	parser.add_argument("--depth", default=False, type=bool,
-				help="""Set attribute depth""")
+				help="""Enable 4th channel with depth""")
+	parser.add_argument("--augment", default=False, type=bool,
+				help="""Enable data augmentation""")
 	parser.add_argument("--lr", type=float, default=0.0001,
 				help="""Learning rate for training""")
 	parser.add_argument("--patience", type=int, default=10,
@@ -108,10 +110,11 @@ if __name__ == '__main__':
 	batch_size = args.batch_size
 	n_epochs = args.n_epochs
 	DEPTH = args.depth
+	AUGMENT = args.augment
 
 	# Datasets for DHF1K
-	ds_train = DHF1K(mode=TRAIN, transformation=True, d_augm=False, depth=DEPTH)
-	ds_validate = DHF1K(mode=VAL, transformation=True, d_augm=False, depth=DEPTH)
+	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT)
+	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT)
 
 	# Dataloaders
 	dataloader = {
