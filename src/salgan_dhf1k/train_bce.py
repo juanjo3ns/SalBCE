@@ -4,7 +4,7 @@ from dataloader.datasetDHF1K import DHF1K
 from torch.utils.data import DataLoader
 from utils.salgan_utils import save_model, get_lr_optimizer
 from utils.sendTelegram import send
-from utils.salgan_generator import create_model
+from utils.salgan_generator import create_model, add_bn
 
 import numpy as np
 
@@ -72,10 +72,10 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_dhf1k_from27DEPTH',
+	parser.add_argument("--path_out", default='../trained_models/salcoord_dhf1k_batchnorm',
 				type=str,
 				help="""set output path for the trained model""")
-	parser.add_argument("--batch_size", default=15,
+	parser.add_argument("--batch_size", default=12,
 				type=int,
 				help="""Set batch size""")
 	parser.add_argument("--n_epochs", default=100, type=int,
@@ -84,9 +84,11 @@ if __name__ == '__main__':
 				help="""Enable 4th channel with depth""")
 	parser.add_argument("--augment", default=False, type=bool,
 				help="""Enable data augmentation""")
+	parser.add_argument("--coord", default=False, type=bool,
+				help="""Enable coordconv""")
 	parser.add_argument("--lr", type=float, default=0.0001,
 				help="""Learning rate for training""")
-	parser.add_argument("--patience", type=int, default=10,
+	parser.add_argument("--patience", type=int, default=2,
 				help="""Patience for learning rate scheduler (default 10)""")
 	args = parser.parse_args()
 
@@ -111,10 +113,11 @@ if __name__ == '__main__':
 	n_epochs = args.n_epochs
 	DEPTH = args.depth
 	AUGMENT = args.augment
+	COORD = args.coord
 
 	# Datasets for DHF1K
-	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT)
-	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT)
+	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
+	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
 
 	# Dataloaders
 	dataloader = {
@@ -137,11 +140,33 @@ if __name__ == '__main__':
 		layer1 = vgg_weights['0.weight']
 		mean_rgb = layer1.mean(dim=1,keepdim=True)
 		vgg_weights['0.weight'] = torch.cat([layer1.cuda(),mean_rgb.cuda()],1)
+		# We could do it easily accessing to the weights trought model[0].weight and change dimension 1, but as we
+		# already have the 4th channel we'd be doing the mean of all of the channels, inicializing it in the wrong way.
+	elif COORD:
+		model = create_model(5)
+		# Mean of RGB weights of first layer with size [64,1,3,3]
+		layer1 = vgg_weights['0.weight']
+		mean_rgb = layer1.mean(dim=1,keepdim=True)
+		vgg_weights['0.weight'] = torch.cat([layer1.cuda(),mean_rgb.cuda()],1)
+		vgg_weights['0.weight'] = torch.cat([vgg_weights['0.weight'].cuda(),mean_rgb.cuda()],1)
 	else: model = create_model(3)
+
 	model.load_state_dict(vgg_weights)
+
+	# Add batch normalization to current model
+	model = add_bn(model)
+
 	model.train()
 	model.cuda()
 	cudnn.benchmark = True
+
+	# NOT WORKING UNMOUNTED DISK
+	# If we have the two GPU's available we are going to use both
+	# if torch.cuda.device_count() > 1:
+	# 	print("Using ", torch.cuda.device_count(), "GPUs!")
+	# 	model = torch.nn.DataParallel(model)
+
+
 
 
 	# loss =====================================================================
@@ -150,13 +175,15 @@ if __name__ == '__main__':
 
 	# select only decoder parameters, keep vgg16 with pretrained weights
 	decoder_parameters = []
+	base_params = []
 	for i, (a, p) in enumerate(model.named_parameters()):
 		if i>25:
 			print(i, a, p.shape)
 			decoder_parameters.append(p)
+		else: base_params.append(p)
 
-	optimizer = SGD(decoder_parameters,
-					lr = args.lr,
+	optimizer = SGD(model.parameters(),
+					lr = 0.0001,
 					momentum=0.9,
 					weight_decay=0.00001,
 					nesterov=True)

@@ -9,8 +9,7 @@ import matplotlib.pylab as plt
 from random import randint
 from scipy import ndimage
 import torch
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
+
 
 PATH_DHF1K = "/home/dataset/DHF1K/"
 TRAIN = 'train'
@@ -40,7 +39,7 @@ def augmentData(image,saliency):
 	return image, saliency
 
 class DHF1K(Dataset):
-	def __init__(self, mode='train',transformation=False, return_path=False, N=None, depth=False, d_augm=False, coord=False):
+	def __init__(self, mode='train',transformation=False, return_path=False, N=None, depth=False, d_augm=False):
 		global PATH_DHF1K
 		self.size = (192, 256)
 		self.mean = [103.939, 116.779, 123.68] #BGR
@@ -50,7 +49,6 @@ class DHF1K(Dataset):
 		self.path_depth = os.path.join(self.path_dataset, 'dhf1k_depth')
 		self.depth = depth
 		self.d_augm = d_augm
-		self.coord = coord
 		self.transformation = transformation
 		self.return_path = return_path
 
@@ -96,21 +94,6 @@ class DHF1K(Dataset):
 			# remove mean value
 			image -= self.mean
 
-			if self.coord:
-				c1 = np.empty(shape=(self.size[0], self.size[1]))
-				c2 = np.empty(shape=(self.size[0], self.size[1]))
-				for i in range(0,self.size[0]):
-					c1[i,:]= i
-				for i in range(0,self.size[1]):
-					c2[:,i]= i
-				c1 = c1.astype(np.float32)
-				c2 = c2.astype(np.float32)
-				c1 = np.expand_dims(c1, axis=2)
-				c2 = np.expand_dims(c2, axis=2)
-				image = np.dstack((image,c1))
-				image = np.dstack((image,c2))
-
-
 			# Add 4 channel with image depth if required
 			if self.depth:
 				num_image = int(ima_name.split('.')[0])
@@ -142,4 +125,16 @@ class DHF1K(Dataset):
 
 
 if __name__ == '__main__':
-	ds = DHF1K()
+	from gulpio.dataset import GulpImageDataset
+	from gulpio.loader import DataLoader
+	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT)
+	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT)
+
+	# Dataloaders
+	dataloader = {
+		TRAIN: DataLoader(ds_train, batch_size=batch_size,
+								shuffle=True, num_workers=2),
+		VAL: DataLoader(ds_validate, batch_size=batch_size,
+								shuffle=False, num_workers=2)
+	}
+	for data, label in dataloader:
