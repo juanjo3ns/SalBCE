@@ -4,7 +4,7 @@ from dataloader.datasetDHF1K import DHF1K
 from torch.utils.data import DataLoader
 from utils.salgan_utils import save_model, get_lr_optimizer
 from utils.sendTelegram import send
-from utils.salgan_generator import create_model, add_bn
+from utils.salgan_generator_bn import create_model, add_bn
 
 import numpy as np
 
@@ -72,7 +72,7 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salcoord_dhf1k_batchnorm',
+	parser.add_argument("--path_out", default='../trained_models/salcoord_dhf1k_batchnorm1',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=12,
@@ -133,7 +133,7 @@ if __name__ == '__main__':
 	# model ====================================================================
 	print("Init model...")
 	# init model with pre-trained weights
-	vgg_weights = torch.load('../trained_models/salgan_salicon_daugmfromscr3/models/best.pt')['state_dict']
+	vgg_weights = torch.load('../trained_models/salcoord_dhf1k_batchnorm/models/best.pt')['state_dict']
 	if DEPTH:
 		model = create_model(4)
 		# Mean of RGB weights of first layer with size [64,1,3,3]
@@ -145,16 +145,16 @@ if __name__ == '__main__':
 	elif COORD:
 		model = create_model(5)
 		# Mean of RGB weights of first layer with size [64,1,3,3]
-		layer1 = vgg_weights['0.weight']
-		mean_rgb = layer1.mean(dim=1,keepdim=True)
-		vgg_weights['0.weight'] = torch.cat([layer1.cuda(),mean_rgb.cuda()],1)
-		vgg_weights['0.weight'] = torch.cat([vgg_weights['0.weight'].cuda(),mean_rgb.cuda()],1)
+		# layer1 = vgg_weights['0.weight']
+		# mean_rgb = layer1.mean(dim=1,keepdim=True)
+		# vgg_weights['0.weight'] = torch.cat([layer1.cuda(),mean_rgb.cuda()],1)
+		# vgg_weights['0.weight'] = torch.cat([vgg_weights['0.weight'].cuda(),mean_rgb.cuda()],1)
 	else: model = create_model(3)
 
 	model.load_state_dict(vgg_weights)
 
 	# Add batch normalization to current model
-	model = add_bn(model)
+	# model = add_bn(model)
 
 	model.train()
 	model.cuda()
@@ -183,7 +183,7 @@ if __name__ == '__main__':
 		else: base_params.append(p)
 
 	optimizer = SGD(model.parameters(),
-					lr = 0.0001,
+					lr = 0.00001,
 					momentum=0.9,
 					weight_decay=0.00001,
 					nesterov=True)
