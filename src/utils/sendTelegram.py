@@ -1,6 +1,6 @@
 import requests
 import json
-token = '658824281:AAETui7gl4muFLRsod1j2cGnuIDox_hj6hY'
+token = ''
 url = 'https://api.telegram.org/bot' + token+ '/sendMessage'
 def send(message):
     r = requests.post(
