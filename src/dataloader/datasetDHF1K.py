@@ -96,6 +96,27 @@ class DHF1K(Dataset):
 			# remove mean value
 			image -= self.mean
 
+			# The order we add [DEPTH, COORD, DATA AUGMENTATION] matters!
+			
+			# Add 4 channel with image depth if required
+			if self.depth:
+				num_image = int(ima_name.split('.')[0])
+				if num_image < 10:
+					ima_name = '0010.png'
+				else: ima_name = '{:04d}.png'.format(int(num_image/10)*10)
+				depth = cv2.imread(os.path.join(self.path_depth,str(vid),ima_name), 0)
+				depth = cv2.resize(depth, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
+				depth = depth.astype(np.float32)
+				depth = np.expand_dims(depth, axis=2)
+				image = np.dstack((image,depth))
+
+
+			#Data augmentation if required
+			if self.d_augm:
+				image, saliency = augmentData(image,saliency)
+
+
+			# Add 4th or 5th and 5th or 6th channel with coordinates
 			if self.coord:
 				c1 = np.empty(shape=(self.size[0], self.size[1]))
 				c2 = np.empty(shape=(self.size[0], self.size[1]))
@@ -111,21 +132,6 @@ class DHF1K(Dataset):
 				image = np.dstack((image,c2))
 
 
-			# Add 4 channel with image depth if required
-			if self.depth:
-				num_image = int(ima_name.split('.')[0])
-				if num_image < 10:
-					ima_name = '0010.png'
-				else: ima_name = '{:04d}.png'.format(int(num_image/10)*10)
-				depth = cv2.imread(os.path.join(self.path_depth,str(vid),ima_name), 0)
-				depth = cv2.resize(depth, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
-				depth = depth.astype(np.float32)
-				depth = np.expand_dims(depth, axis=2)
-				image = np.dstack((image,depth))
-
-			#Data augmentation if required
-			if self.d_augm:
-				image, saliency = augmentData(image,saliency)
 
 			# convert to torch Tensor
 			image = torch.FloatTensor(image)

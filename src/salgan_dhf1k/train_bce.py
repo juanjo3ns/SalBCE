@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from utils.salgan_utils import save_model, get_lr_optimizer
 from utils.sendTelegram import send
 from utils.salgan_generator import create_model, add_bn
+from evaluation.eval_dhf1k import compute_metrics
 
 import numpy as np
 
@@ -23,6 +24,15 @@ from tensorboard_logger import configure, log_value, log_histogram
 TRAIN = 'train'
 VAL = 'val'
 TEST = 'test'
+
+def add_layer_weights(vgg_weights):
+	# Mean of RGB weights of first layer with size [64,1,3,3]
+	layer1 = vgg_weights['0.weight']
+	mean_rgb = layer1.mean(dim=1,keepdim=True)
+	vgg_weights['0.weight'] = torch.cat([layer1.cuda(),mean_rgb.cuda()],1)
+	# We could do it easily accessing to the weights trought model[0].weight and change dimension 1, but as we
+	# already have the 4th channel we'd be doing the mean of all of the channels, inicializing it in the wrong way.
+	return vgg_weights
 
 def train_eval(mode, model, optimizer, dataloader):
 	if mode == TRAIN:
@@ -72,10 +82,10 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/salgan_dhf1k_adamoptim',
+	parser.add_argument("--path_out", default='../trained_models/sal_dhf1k_adamdepthcoordaugm',
 				type=str,
 				help="""set output path for the trained model""")
-	parser.add_argument("--batch_size", default=12,
+	parser.add_argument("--batch_size", default=15,
 				type=int,
 				help="""Set batch size""")
 	parser.add_argument("--n_epochs", default=100, type=int,
@@ -134,21 +144,17 @@ if __name__ == '__main__':
 	print("Init model...")
 	# init model with pre-trained weights
 	vgg_weights = torch.load('../trained_models/salgan_salicon_daugmfromscr3/models/best.pt')['state_dict']
-	if DEPTH:
+	if DEPTH and COORD:
+		model = create_model(6)
+		for i in range(0,3):
+			vgg_weights = add_layer_weights(vgg_weights)
+	ellif DEPTH:
 		model = create_model(4)
-		# Mean of RGB weights of first layer with size [64,1,3,3]
-		layer1 = vgg_weights['0.weight']
-		mean_rgb = layer1.mean(dim=1,keepdim=True)
-		vgg_weights['0.weight'] = torch.cat([layer1.cuda(),mean_rgb.cuda()],1)
-		# We could do it easily accessing to the weights trought model[0].weight and change dimension 1, but as we
-		# already have the 4th channel we'd be doing the mean of all of the channels, inicializing it in the wrong way.
+		add_layer_weights(vgg_weights)
 	elif COORD:
 		model = create_model(5)
-		# Mean of RGB weights of first layer with size [64,1,3,3]
-		# layer1 = vgg_weights['0.weight']
-		# mean_rgb = layer1.mean(dim=1,keepdim=True)
-		# vgg_weights['0.weight'] = torch.cat([layer1.cuda(),mean_rgb.cuda()],1)
-		# vgg_weights['0.weight'] = torch.cat([vgg_weights['0.weight'].cuda(),mean_rgb.cuda()],1)
+		for i in range(0,2):
+			vgg_weights = add_layer_weights(vgg_weights)
 	else: model = create_model(3)
 
 	model.load_state_dict(vgg_weights)
@@ -215,17 +221,16 @@ if __name__ == '__main__':
 			# select dataloader
 			data_iterator = dataloader[mode]
 
-			# compute saliency metrics
-			# (not sure if this metrics are right thought)
-			# if mode ==VAL:
-			# 	print("Evaluating metrics....")
-			# 	# only do 100 images from validation (too slow if not)
-			# 	metrics = get_saliency_metrics(data_iterator, model, N=100)
-			#
-			# 	# log metric values
-			# 	for metric in metrics.keys():
-			# 		log_value("Metrics/{}".format(metric),
-			# 					metrics[metric], id_epoch)
+			# saliency metrics
+			if mode ==VAL:
+				print("Evaluating metrics....")
+				# only do 100 images from validation
+				metrics = compute_metrics(model, 100)
+
+				# log metric values
+				for metric in metrics.keys():
+					log_value("Metrics/{}".format(metric),
+								metrics[metric], id_epoch)
 
 			# get epoch loss
 			print("--> {} epoch {}".format(mode, id_epoch))

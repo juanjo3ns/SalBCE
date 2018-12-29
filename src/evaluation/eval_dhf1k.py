@@ -1,3 +1,13 @@
+
+#-------------------------------------------------------------------------------------#
+	# This script is gonna be used in two different ways:
+		# 1. When we want to compute the saliency metrics of all the validation set
+		#    where we create the model from a pretrained weights
+		# 2. When we want an estimation of the saliency metrics during the training,
+		#    we pass the model currently trained and compute the metrics over 100 images
+		#    without printing anything
+#-------------------------------------------------------------------------------------#
+
 import sys
 import torch
 #from utils.salgan_generator import create_model
@@ -43,6 +53,9 @@ INPUT_PATH = os.path.join(DHF1K_PATH,'dhf1k_frames/')
 DEPTH_PATH = os.path.join(DHF1K_PATH,'dhf1k_depth/')
 GT_PATH = os.path.join(DHF1K_PATH, 'dhf1k_gt/')
 OUTPUT_PATH = '/home/saliency_maps/' + MODEL
+train = True
+N = None
+results = {}
 
 start_total = time.time()
 
@@ -56,10 +69,13 @@ def construct_other():
 		other_map = np.clip(other_map,0,255)
 	return other_map
 
-def inference(y):
+def inference(y, N=None):
 
 	predictions = []
-	for file in sorted(os.listdir(os.path.join(INPUT_PATH,'{:03d}'.format(y))), key = lambda x: int(x.split(".")[0])):
+	files = sorted(os.listdir(os.path.join(INPUT_PATH,'{:03d}'.format(y))), key = lambda x: int(x.split(".")[0]))
+	if N is not None:
+		files = files[:N]
+	for file in files:
 		filename = os.path.join(INPUT_PATH,'{:03d}'.format(y), file)
 		image_tensor, image_size = load_image(filename)
 		if DEPTH:
@@ -138,78 +154,91 @@ def inner_worker(n, pack, y):
 	return ( AUC_judd, sAUC, nss, cc, sim)
 
 
-
-
-# create output file
-if SAVE:
-	if not os.path.exists(OUTPUT_PATH):
-		os.makedirs(OUTPUT_PATH)
-
-# init model with pre-trained weights
-if DEPTH:
-	model = create_model(4)
-elif COORD:
-	model = create_model(5)
-else:
-	model = create_model(3)
-
-model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS)['state_dict'])
-model.eval()
-
-# if GPU is enabled
-if USE_GPU:
-	model.cuda()
-
-start = datetime.datetime.now().replace(microsecond=0)
-for y in range(601,701):
+# If model is not None it means that we are calling this function
+# from the training process
+def compute_metrics(model=None, N=None):
+	# create output file
 	if SAVE:
-		if not os.path.exists(os.path.join(OUTPUT_PATH,str(y))):
-			os.makedirs(os.path.join(OUTPUT_PATH,str(y)))
+		if not os.path.exists(OUTPUT_PATH):
+			os.makedirs(OUTPUT_PATH)
 
-	gt_path = os.path.join(GT_PATH, str(y))
-	gt_files = os.listdir(os.path.join(gt_path,'maps'))
-	gt_files_sorted = sorted(gt_files, key = lambda x: int(x.split(".")[0]))
+	if model is None:
+		# init model with pre-trained weights
+		train = False
+		if DEPTH:
+			model = create_model(4)
+		elif COORD:
+			model = create_model(5)
+		else:
+			model = create_model(3)
 
-	predictions = inference(y)
+		model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS)['state_dict'])
+	model.eval()
 
-	gt_prediction = zip(gt_files_sorted, predictions)
-	from joblib import Parallel, delayed
+	# if GPU is enabled
+	if USE_GPU:
+		model.cuda()
 
-	metric_list = Parallel(n_jobs=8)(delayed(inner_worker)(n, pack, y) for n, pack in enumerate(gt_prediction))
-	aucj_mean = np.mean([x[0] for x in metric_list])
-	aucs_mean = np.mean([x[1] for x in metric_list])
-	nss_mean = np.mean([x[2] for x in metric_list])
-	cc_mean = np.mean([x[3] for x in metric_list])
-	sim_mean = np.mean([x[4] for x in metric_list])
+	start = datetime.datetime.now().replace(microsecond=0)
+	for y in range(601,701):
+		if SAVE:
+			if not os.path.exists(os.path.join(OUTPUT_PATH,str(y))):
+				os.makedirs(os.path.join(OUTPUT_PATH,str(y)))
 
-	print("For video number {} the metrics are:".format(y))
-	print("AUC-JUDD is {}".format(aucj_mean))
-	print("AUC-SHUFFLED is {}".format(aucs_mean))
-	print("NSS is {}".format(nss_mean))
-	print("CC is {}".format(cc_mean))
-	print("SIM is {}".format(sim_mean))
-	print("Time elapsed so far: {}".format(datetime.datetime.now().replace(microsecond=0)-start))
-	print("==============================")
-	message = 'For video number {} the metrics are:\nAUC-JUDD is {}\nAUC-SHUFFLED is {}\nNSS is {}\nCC is {}\nSIM is {}\nTime elapsed so far: {}\n=============================='.format(y,aucj_mean,aucs_mean,nss_mean,cc_mean,sim_mean,datetime.datetime.now().replace(microsecond=0)-start)
-	send(message)
-	final_metric_list.append(( aucj_mean,
-						aucs_mean,
-						nss_mean,
-						cc_mean,
-						sim_mean ))
+		gt_path = os.path.join(GT_PATH, str(y))
+		gt_files = os.listdir(os.path.join(gt_path,'maps'))
+		gt_files_sorted = sorted(gt_files, key = lambda x: int(x.split(".")[0]))
 
-Aucj = np.mean([y[0] for y in final_metric_list])
-Aucs = np.mean([y[1] for y in final_metric_list])
-Nss = np.mean([y[2] for y in final_metric_list])
-Cc = np.mean([y[3] for y in final_metric_list])
-Sim = np.mean([y[4] for y in final_metric_list])
+		predictions = inference(y,N)
 
-print("Final average of metrics is:")
-print("AUC-JUDD is {}".format(Aucj))
-print("AUC-SHUFFLED is {}".format(Aucs))
-print("NSS is {}".format(Nss))
-print("CC is {}".format(Cc))
-print("SIM is {}".format(Sim))
-finalMessage = "Final average of metrics is:\nAUC-JUDD is {}\nAUC-SHUFFLED is {}\nNSS is {}\nCC is {}\nSIM is {}".format(Aucj,Aucs,Nss,Cc,Sim)
-send(finalMessage)
-print("TOTAL TIME: ", time.time()-start_total)
+		gt_prediction = zip(gt_files_sorted, predictions)
+		from joblib import Parallel, delayed
+
+		metric_list = Parallel(n_jobs=8)(delayed(inner_worker)(n, pack, y) for n, pack in enumerate(gt_prediction))
+		aucj_mean = np.mean([x[0] for x in metric_list])
+		aucs_mean = np.mean([x[1] for x in metric_list])
+		nss_mean = np.mean([x[2] for x in metric_list])
+		cc_mean = np.mean([x[3] for x in metric_list])
+		sim_mean = np.mean([x[4] for x in metric_list])
+		if not train:
+			print("For video number {} the metrics are:".format(y))
+			print("AUC-JUDD is {}".format(aucj_mean))
+			print("AUC-SHUFFLED is {}".format(aucs_mean))
+			print("NSS is {}".format(nss_mean))
+			print("CC is {}".format(cc_mean))
+			print("SIM is {}".format(sim_mean))
+			print("Time elapsed so far: {}".format(datetime.datetime.now().replace(microsecond=0)-start))
+			print("==============================")
+			message = 'For video number {} the metrics are:\nAUC-JUDD is {}\nAUC-SHUFFLED is {}\nNSS is {}\nCC is {}\nSIM is {}\nTime elapsed so far: {}\n=============================='.format(y,aucj_mean,aucs_mean,nss_mean,cc_mean,sim_mean,datetime.datetime.now().replace(microsecond=0)-start)
+			send(message)
+		final_metric_list.append(( aucj_mean,
+							aucs_mean,
+							nss_mean,
+							cc_mean,
+							sim_mean ))
+
+	Aucj = np.mean([y[0] for y in final_metric_list])
+	Aucs = np.mean([y[1] for y in final_metric_list])
+	Nss = np.mean([y[2] for y in final_metric_list])
+	Cc = np.mean([y[3] for y in final_metric_list])
+	Sim = np.mean([y[4] for y in final_metric_list])
+	if train:
+		results['AUC Judd'] = Aucj
+    	results['AUC Shuff'] = Aucs
+    	results['NSS'] = Nss
+    	results['CC'] = Cc
+    	results['SIM'] = Sim
+		return results
+
+	print("Final average of metrics is:")
+	print("AUC-JUDD is {}".format(Aucj))
+	print("AUC-SHUFFLED is {}".format(Aucs))
+	print("NSS is {}".format(Nss))
+	print("CC is {}".format(Cc))
+	print("SIM is {}".format(Sim))
+	finalMessage = "Final average of metrics is:\nAUC-JUDD is {}\nAUC-SHUFFLED is {}\nNSS is {}\nCC is {}\nSIM is {}".format(Aucj,Aucs,Nss,Cc,Sim)
+	send(finalMessage)
+	print("TOTAL TIME: ", time.time()-start_total)
+
+if __name__ == '__main__':
+	compute_metrics()
