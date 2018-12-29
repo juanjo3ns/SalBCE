@@ -148,7 +148,7 @@ if __name__ == '__main__':
 		model = create_model(6)
 		for i in range(0,3):
 			vgg_weights = add_layer_weights(vgg_weights)
-	ellif DEPTH:
+	elif DEPTH:
 		model = create_model(4)
 		add_layer_weights(vgg_weights)
 	elif COORD:
@@ -189,7 +189,7 @@ if __name__ == '__main__':
 		else: base_params.append(p)
 
 	# ADAM OPTIMIZER
-	optimizer = Adam(model.named_parameters(),
+	optimizer = Adam(model.parameters(),
 					lr = 0.000001,
 					weight_decay=0.00001)
 

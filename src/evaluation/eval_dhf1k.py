@@ -2,22 +2,22 @@
 #-------------------------------------------------------------------------------------#
 	# This script is gonna be used in two different ways:
 		# 1. When we want to compute the saliency metrics of all the validation set
-		#    where we create the model from a pretrained weights
+		#	where we create the model from a pretrained weights
 		# 2. When we want an estimation of the saliency metrics during the training,
-		#    we pass the model currently trained and compute the metrics over 100 images
-		#    without printing anything
+		#	we pass the model currently trained and compute the metrics over 100 images
+		#	without printing anything
 #-------------------------------------------------------------------------------------#
 
 import sys
 import torch
 #from utils.salgan_generator import create_model
-from utils.salgan_generator import create_model
+from utils.salgan_generator import create_model, add_bn
 from utils.salgan_utils import load_image, postprocess_prediction
 from utils.salgan_utils import normalize_map
 
 from utils.sendTelegram import send
 
-from metrics_functions import AUC_Judd, AUC_shuffled, CC, NSS, SIM
+from evaluation.metrics_functions import AUC_Judd, AUC_shuffled, CC, NSS, SIM
 import cv2
 import os
 import random
@@ -29,22 +29,28 @@ from IPython import embed
 
 USE_GPU = True
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("-model", "--model", type=str, required=True,
-			help="""Weight's path and folder name for saliency maps.""")
-parser.add_argument("--depth", default=False, type=bool,
-			help="""Enable 4th channel with depth""")
-parser.add_argument("--coord", default=False, type=bool,
-			help="""Enable coordconv""")
-parser.add_argument("--save", default=False, type=bool,
-			help="""Save inference images""")
-args = parser.parse_args()
+# import argparse
+# parser = argparse.ArgumentParser()
+# parser.add_argument("--model", "--model", type=str,
+# 			help="""Weight's path and folder name for saliency maps.""")
+# parser.add_argument("--depth", default=False, type=bool,
+# 			help="""Enable 4th channel with depth""")
+# parser.add_argument("--coord", default=False, type=bool,
+# 			help="""Enable coordconv""")
+# parser.add_argument("--save", default=False, type=bool,
+# 			help="""Save inference images""")
+# args = parser.parse_args()
 
-MODEL = args.model
-SAVE = args.save
-DEPTH = args.depth
-COORD = args.coord
+# MODEL = args.model
+# if MODEL is None:
+MODEL = ''
+SAVE = False
+DEPTH = True
+COORD = True
+
+# SAVE = args.save
+# DEPTH = args.depth
+# COORD = args.coord
 
 PATH_PYTORCH_WEIGHTS = '../trained_models/'+ MODEL +'/models/best.pt'
 DHF1K_PATH = '/home/dataset/DHF1K/'
@@ -69,7 +75,7 @@ def construct_other():
 		other_map = np.clip(other_map,0,255)
 	return other_map
 
-def inference(y, N=None):
+def inference(model, y, N=None):
 
 	predictions = []
 	files = sorted(os.listdir(os.path.join(INPUT_PATH,'{:03d}'.format(y))), key = lambda x: int(x.split(".")[0]))
@@ -157,6 +163,7 @@ def inner_worker(n, pack, y):
 # If model is not None it means that we are calling this function
 # from the training process
 def compute_metrics(model=None, N=None):
+	train = True
 	# create output file
 	if SAVE:
 		if not os.path.exists(OUTPUT_PATH):
@@ -165,13 +172,15 @@ def compute_metrics(model=None, N=None):
 	if model is None:
 		# init model with pre-trained weights
 		train = False
-		if DEPTH:
+		if DEPTH and COORD:
+			model = create_model(6)
+		elif DEPTH:
 			model = create_model(4)
 		elif COORD:
 			model = create_model(5)
 		else:
 			model = create_model(3)
-
+		model = add_bn(model)
 		model.load_state_dict(torch.load(PATH_PYTORCH_WEIGHTS)['state_dict'])
 	model.eval()
 
@@ -189,7 +198,7 @@ def compute_metrics(model=None, N=None):
 		gt_files = os.listdir(os.path.join(gt_path,'maps'))
 		gt_files_sorted = sorted(gt_files, key = lambda x: int(x.split(".")[0]))
 
-		predictions = inference(y,N)
+		predictions = inference(model, y, N)
 
 		gt_prediction = zip(gt_files_sorted, predictions)
 		from joblib import Parallel, delayed
@@ -224,10 +233,10 @@ def compute_metrics(model=None, N=None):
 	Sim = np.mean([y[4] for y in final_metric_list])
 	if train:
 		results['AUC Judd'] = Aucj
-    	results['AUC Shuff'] = Aucs
-    	results['NSS'] = Nss
-    	results['CC'] = Cc
-    	results['SIM'] = Sim
+		results['AUC Shuff'] = Aucs
+		results['NSS'] = Nss
+		results['CC'] = Cc
+		results['SIM'] = Sim
 		return results
 
 	print("Final average of metrics is:")
@@ -241,4 +250,5 @@ def compute_metrics(model=None, N=None):
 	print("TOTAL TIME: ", time.time()-start_total)
 
 if __name__ == '__main__':
+	assert (MODEL is not ''), "Introduce model in args [--model]"
 	compute_metrics()
