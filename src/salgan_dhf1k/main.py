@@ -8,17 +8,18 @@ from utils.salgan_utils import normalize_map
 import numpy as np
 import os
 import cv2
-
+import time
 import matplotlib.pylab as plt
 from IPython import embed
 
-PATH_PYTORCH_WEIGHTS = '../trained_models/salcoord_dhf1k_batchnorm/models/best.pt'
+PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_dhf1k_adamoptim/models/best.pt'
 INPUT_PATH = '/home/dataset/DHF1K/dhf1k_frames/'
-OUTPUT_PATH = '/home/saliency_maps/salcoord_dhf1k_batchnorm'
+OUTPUT_PATH = '/home/saliency_maps/salgan_dhf1k_adamoptim'
 DEPTH_PATH = '/home/dataset/DHF1K/dhf1k_depth/'
 
 USE_GPU=True
 
+start = time.time()
 
 def main():
 	"""
@@ -26,7 +27,7 @@ def main():
 
 	"""
 	DEPTH = False
-	COORD = True
+	COORD = False
 	# create output file
 	if not os.path.exists(OUTPUT_PATH):
 		os.makedirs(OUTPUT_PATH)
@@ -97,7 +98,8 @@ def main():
 			saliency = postprocess_prediction(prediction, image_size)
 			saliency = normalize_map(saliency)
 			saliency *= 255
-			saliency = saliency.astype(np.uint8)
+			embed()
+			
 			# save saliency
 
 			cv2.imwrite(os.path.join(OUTPUT_PATH,str(y),name), saliency)
@@ -107,3 +109,5 @@ def main():
 
 if __name__ == '__main__':
 	main()
+
+print("Inference time: ", time.time()-start)

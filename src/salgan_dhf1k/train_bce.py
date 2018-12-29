@@ -12,7 +12,7 @@ import torch
 from torch.nn import AvgPool2d
 from torch.nn.modules.loss import BCELoss
 import torch.backends.cudnn as cudnn
-from torch.optim import SGD
+from torch.optim import SGD, Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
@@ -183,9 +183,9 @@ if __name__ == '__main__':
 		else: base_params.append(p)
 
 	# ADAM OPTIMIZER
-	optimizer = Adam(model.parameters(),
+	optimizer = Adam(model.named_parameters(),
 					lr = 0.000001,
-					weight_decay=0.0001)
+					weight_decay=0.00001)
 
 	# STOCHASTIC GRADIENT DESCENT
 	# optimizer = SGD(model.parameters(),
@@ -242,8 +242,8 @@ if __name__ == '__main__':
 			# record loss
 			log_value("loss/{}".format(mode), epoch_loss, id_epoch)
 			log_value("lr/{}".format(mode), lr, id_epoch)
-			for v in model.state_dict():
-				log_histogram("Layer {}".format(v), model.state_dict()[v], id_epoch)
+			# for v in model.state_dict():
+			# 	log_histogram("Layer {}".format(v), model.state_dict()[v], id_epoch)
 			if (id_epoch%10)==0:
 				save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
 			# store model if val loss improves
