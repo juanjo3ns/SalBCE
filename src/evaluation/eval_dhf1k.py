@@ -119,7 +119,7 @@ def inference(y):
 def inner_worker(n, pack, y):
 	gt, prediction = pack
 	if SAVE:
-		cv2.imwrite(os.path.join(OUTPUT_PATH,str(y),gt), saliency)
+		cv2.imwrite(os.path.join(OUTPUT_PATH,str(y),gt), prediction)
 
 	mground_truth = cv2.imread(os.path.join(GT_PATH,str(y),'maps', gt),cv2.IMREAD_GRAYSCALE)
 	fground_truth = cv2.imread(os.path.join(GT_PATH,str(y),'fixation', gt),cv2.IMREAD_GRAYSCALE)
