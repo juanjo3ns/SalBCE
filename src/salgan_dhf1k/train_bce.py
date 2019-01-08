@@ -82,13 +82,13 @@ def train_eval(mode, model, optimizer, dataloader):
 if __name__ == '__main__':
 	import argparse
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--path_out", default='../trained_models/sal_dhf1k_adamdepthcoordaugm2_frombestsaldepth',
+	parser.add_argument("--path_out", default='sal_dhf1k_adamdepthcoordaugm2_frombestsaldepth',
 				type=str,
 				help="""set output path for the trained model""")
 	parser.add_argument("--batch_size", default=12,
 				type=int,
 				help="""Set batch size""")
-	parser.add_argument("--n_epochs", default=100, type=int,
+	parser.add_argument("--n_epochs", default=4, type=int,
 				help="""Set total number of epochs""")
 	parser.add_argument("--depth", default=False, type=bool,
 				help="""Enable 4th channel with depth""")
@@ -96,7 +96,7 @@ if __name__ == '__main__':
 				help="""Enable data augmentation""")
 	parser.add_argument("--coord", default=False, type=bool,
 				help="""Enable coordconv""")
-	parser.add_argument("--lr", type=float, default=0.0001,
+	parser.add_argument("--lr", type=float, default=0.000001,
 				help="""Learning rate for training""")
 	parser.add_argument("--patience", type=int, default=2,
 				help="""Patience for learning rate scheduler (default 10)""")
@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
 
 	# set output path ==========================================================
-	path_out = args.path_out
+	path_out = '../trained_models/' + args.path_out
 
 	if not os.path.exists(path_out):
 		# create output path
@@ -121,6 +121,7 @@ if __name__ == '__main__':
 	# data =====================================================================
 	batch_size = args.batch_size
 	n_epochs = args.n_epochs
+	lr = args.lr
 	DEPTH = args.depth
 	AUGMENT = args.augment
 	COORD = args.coord
@@ -139,14 +140,14 @@ if __name__ == '__main__':
 
 
 
-
+	torch.cuda.set_device(1)
 	# model ====================================================================
 	print("Init model...")
 	# init model with pre-trained weights
-	vgg_weights = torch.load('../trained_models/saldepth_dhf1k_finetuning2lr_2/models/best.pt')['state_dict']
+	vgg_weights = torch.load('../trained_models/salgan_baseline.pt')['state_dict']
 	if DEPTH and COORD:
 		model = create_model(6)
-		for i in range(0,2):
+		for i in range(0,3):
 			vgg_weights = add_layer_weights(vgg_weights)
 	elif DEPTH:
 		model = create_model(4)
@@ -156,7 +157,6 @@ if __name__ == '__main__':
 		for i in range(0,2):
 			vgg_weights = add_layer_weights(vgg_weights)
 	else: model = create_model(3)
-
 	model.load_state_dict(vgg_weights)
 
 	# Add batch normalization to current model
@@ -189,8 +189,8 @@ if __name__ == '__main__':
 		else: base_params.append(p)
 
 	# ADAM OPTIMIZER
-	optimizer = Adam(model.parameters(),
-					lr = 0.000001,
+	optimizer = Adam(decoder_parameters,
+					lr = lr,
 					weight_decay=0.000001)
 
 	# STOCHASTIC GRADIENT DESCENT
@@ -249,8 +249,8 @@ if __name__ == '__main__':
 			log_value("lr/{}".format(mode), lr, id_epoch)
 			# for v in model.state_dict():
 			# 	log_histogram("Layer {}".format(v), model.state_dict()[v], id_epoch)
-			if (id_epoch%10)==0:
-				save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
+			# if (id_epoch%10)==0:
+			# 	save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
 			# store model if val loss improves
 			if mode==VAL:
 				if best_loss > epoch_loss:

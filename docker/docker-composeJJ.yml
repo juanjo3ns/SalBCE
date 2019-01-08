@@ -11,7 +11,7 @@ services:
     volumes:
       - ../src:/home/code
       - /media/eHD/juanjo/DATASETS/:/home/dataset
-      - /media/eHD/juanjo/TRAINED_MODELS/:/home/code/trained_models
+      - /media/eHD/juanjo/TRAIN_POOL/:/home/code/trained_models
       - /media/eHD/juanjo/SALIENCY_MAPS/:/home/saliency_maps
     environment:
       - PYTHONPATH=/home/code
