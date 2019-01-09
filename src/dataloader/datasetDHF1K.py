@@ -25,8 +25,8 @@ def augmentData(image,saliency):
 		image = image[::-1,:,:]
 		saliency = saliency[::-1,:]
 	elif augmentation == 2:
-		image = ndimage.rotate(image, 45)
-		saliency = ndimage.rotate(saliency, 45)
+		image = ndimage.rotate(image, 20)
+		saliency = ndimage.rotate(saliency, 20)
 		sqr = image.shape[0]
 		start1 = int((sqr-192)/2)+1
 		end1 = sqr-int((sqr-192)/2)
@@ -97,7 +97,7 @@ class DHF1K(Dataset):
 			image -= self.mean
 
 			# The order we add [DEPTH, COORD, DATA AUGMENTATION] matters!
-			
+
 			# Add 4 channel with image depth if required
 			if self.depth:
 				num_image = int(ima_name.split('.')[0])
@@ -112,7 +112,8 @@ class DHF1K(Dataset):
 
 
 			#Data augmentation if required
-			if self.d_augm:
+			if self.d_augm and randint(0,1)==0:
+
 				image, saliency = augmentData(image,saliency)
 
 
