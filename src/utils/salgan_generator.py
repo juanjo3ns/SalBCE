@@ -26,7 +26,7 @@ def create_model(input_channels):
 
 	# new enconder
 	encoder = [
-		Conv2d(input_channels, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
+		Conv2d(input_channels, 64, kernel_size=(3, 3), stride=(4, 4), padding=(1, 1)),
 		ReLU(),
 		Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
 		ReLU(),
@@ -87,7 +87,7 @@ def create_model(input_channels):
 		ReLU(),
 		Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
 		ReLU(),
-		Upsample(scale_factor=2, mode='nearest'),
+		Upsample(scale_factor=8, mode='nearest'),
 
 		Conv2d(128, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
 		ReLU(),

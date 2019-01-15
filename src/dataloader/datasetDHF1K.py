@@ -18,6 +18,7 @@ VAL = 'val'
 
 def augmentData(image,saliency):
 	augmentation = randint(0,3)
+	augmentation = 2
 	if augmentation == 0:
 		image = image[:,::-1,:]
 		saliency = saliency[:,::-1]
@@ -25,8 +26,8 @@ def augmentData(image,saliency):
 		image = image[::-1,:,:]
 		saliency = saliency[::-1,:]
 	elif augmentation == 2:
-		image = ndimage.rotate(image, 20)
-		saliency = ndimage.rotate(saliency, 20)
+		image = ndimage.rotate(image, 45)
+		saliency = ndimage.rotate(saliency, 45)
 		sqr = image.shape[0]
 		start1 = int((sqr-192)/2)+1
 		end1 = sqr-int((sqr-192)/2)
@@ -82,13 +83,11 @@ class DHF1K(Dataset):
 		image = cv2.imread(rgb_ima)
 		ima_name = self.list_names[index][-4:]+'.png'
 		saliency = cv2.imread(os.path.join(self.path_saliency, str(vid), 'maps', ima_name), 0)
-
 		# apply transformation
 		if self.transformation:
 			# reshape
 			image = cv2.resize(image, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
 			saliency = cv2.resize(saliency, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
-
 			# convert to foat
 			image = image.astype(np.float32)
 			saliency = saliency.astype(np.float32)
@@ -97,7 +96,6 @@ class DHF1K(Dataset):
 			image -= self.mean
 
 			# The order we add [DEPTH, COORD, DATA AUGMENTATION] matters!
-
 			# Add 4 channel with image depth if required
 			if self.depth:
 				num_image = int(ima_name.split('.')[0])
@@ -113,7 +111,6 @@ class DHF1K(Dataset):
 
 			#Data augmentation if required
 			if self.d_augm and randint(0,1)==0:
-
 				image, saliency = augmentData(image,saliency)
 
 
@@ -149,4 +146,5 @@ class DHF1K(Dataset):
 
 
 if __name__ == '__main__':
-	ds = DHF1K()
+	ds = DHF1K(mode='val', transformation=True, depth=False, d_augm=True, coord=True)
+	image, saliency = ds[0]

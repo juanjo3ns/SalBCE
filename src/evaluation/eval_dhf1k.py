@@ -44,6 +44,7 @@ DEPTH = args.depth
 COORD = args.coord
 
 PATH_PYTORCH_WEIGHTS = '../trained_models/'+ MODEL +'/models/best.pt'
+# PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_baseline.pt'
 DHF1K_PATH = '/home/dataset/DHF1K/'
 INPUT_PATH = os.path.join(DHF1K_PATH,'dhf1k_frames/')
 

@@ -14,7 +14,7 @@ from torch.nn import AvgPool2d
 from torch.nn.modules.loss import BCELoss
 import torch.backends.cudnn as cudnn
 from torch.optim import SGD, Adam
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
 
 
 from IPython import embed
@@ -74,7 +74,6 @@ def train_eval(mode, model, optimizer, dataloader):
 		total_loss.append(loss.item())
 
 	total_loss=np.mean(total_loss)
-
 	return total_loss
 
 
@@ -85,10 +84,10 @@ if __name__ == '__main__':
 	parser.add_argument("--path_out", default='sal_dhf1k_adamdepthcoordaugm2_frombestsaldepth',
 				type=str,
 				help="""set output path for the trained model""")
-	parser.add_argument("--batch_size", default=12,
+	parser.add_argument("--batch_size", default=32,
 				type=int,
 				help="""Set batch size""")
-	parser.add_argument("--n_epochs", default=4, type=int,
+	parser.add_argument("--n_epochs", default=5, type=int,
 				help="""Set total number of epochs""")
 	parser.add_argument("--depth", default=False, type=bool,
 				help="""Enable 4th channel with depth""")
@@ -96,7 +95,7 @@ if __name__ == '__main__':
 				help="""Enable data augmentation""")
 	parser.add_argument("--coord", default=False, type=bool,
 				help="""Enable coordconv""")
-	parser.add_argument("--lr", type=float, default=0.000001,
+	parser.add_argument("--lr", type=float, default=0.00001,
 				help="""Learning rate for training""")
 	parser.add_argument("--patience", type=int, default=2,
 				help="""Patience for learning rate scheduler (default 10)""")
@@ -104,7 +103,7 @@ if __name__ == '__main__':
 
 
 	# set output path ==========================================================
-	path_out = '../trained_models/' + args.path_out
+	path_out = '../trained_models/batch32/' + args.path_out
 
 	if not os.path.exists(path_out):
 		# create output path
@@ -125,7 +124,6 @@ if __name__ == '__main__':
 	DEPTH = args.depth
 	AUGMENT = args.augment
 	COORD = args.coord
-
 	# Datasets for DHF1K
 	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
 	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
@@ -178,6 +176,10 @@ if __name__ == '__main__':
 	# loss =====================================================================
 	print("BCE criterium...")
 	bce_loss = BCELoss()
+	trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
+	print("Trainable parameters: ", trainable_parameters)
+	send("Trainable parameters: " + str(trainable_parameters))
+	send("Experiment: " + args.path_out)
 
 	# select only decoder parameters, keep vgg16 with pretrained weights
 	decoder_parameters = []
@@ -189,7 +191,7 @@ if __name__ == '__main__':
 		else: base_params.append(p)
 
 	# ADAM OPTIMIZER
-	optimizer = Adam(decoder_parameters,
+	optimizer = Adam(model.parameters(),
 					lr = lr,
 					weight_decay=0.000001)
 
@@ -208,10 +210,11 @@ if __name__ == '__main__':
 		# patience (int) num epochs sense millora a partir dels quals es redueix lr,
 		# verbose (bool),
 	# )
-	scheduler = ReduceLROnPlateau(optimizer,
-								'min',
-								patience=args.patience,
-								verbose=True)
+	# scheduler = ReduceLROnPlateau(optimizer,
+	# 							'min',
+	# 							patience=args.patience,
+	# 							verbose=True)
+	scheduler = StepLR(optimizer, step_size=3, gamma=0.1)
 
 	best_loss=9999999
 
@@ -258,4 +261,5 @@ if __name__ == '__main__':
 					best_loss = epoch_loss
 
 					save_model(model, optimizer, id_epoch, path_out, name_model='best')
-				scheduler.step(epoch_loss)
+				# scheduler.step(epoch_loss)
+				scheduler.step()
