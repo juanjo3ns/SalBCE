@@ -37,6 +37,15 @@ df_map = pd.DataFrame(columns=['x_gt_pos','y_gt_pos'])
 
 # for folder in range(601,701):
 # for img in os.listdir(os.path.join(path, str(601), "fixation")):
+# video 14
+# take nonzero from every frame and select 10 random elements
+# before taking the 10 random elements, convert to [(),(),(),...]
+# then sum and represent
+
+
+# for continuous map as depth or optical flow take the pixel values when
+# the pixels around the evaluated pixel are lower than itself
+
 image = cv2.imread(os.path.join(path, str(601), "fixation", "0001.png"), 0)
 index = np.nonzero(image)
 for x,y in zip(index[0], index[1]):

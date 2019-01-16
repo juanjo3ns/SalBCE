@@ -10,6 +10,7 @@ from random import randint
 from scipy import ndimage
 import torch
 from torch.utils.data import Dataset, DataLoader
+from utils.load_flow import readFlow
 from torchvision import transforms
 
 PATH_DHF1K = "/home/dataset/DHF1K/"
@@ -39,6 +40,11 @@ def augmentData(image,saliency):
 	image = np.ascontiguousarray(image)
 	saliency = np.ascontiguousarray(saliency)
 	return image, saliency
+def img_name(name, num):
+	num_image = int(name.split('.')[0])
+	if num_image < num:
+		return '{:04d}.png'.format(num)
+	else: return '{:04d}.png'.format(int(num_image/num)*num)
 
 class DHF1K(Dataset):
 	def __init__(self, mode='train',transformation=False, return_path=False, N=None, depth=False, d_augm=False, coord=False):
@@ -95,18 +101,21 @@ class DHF1K(Dataset):
 			# remove mean value
 			image -= self.mean
 
-			# The order we add [DEPTH, COORD, DATA AUGMENTATION] matters!
-			# Add 4 channel with image depth if required
+			# The order we add [DEPTH, FLOW, COORD, DATA AUGMENTATION] matters!
+			# Add 1 channel with image depth if required
 			if self.depth:
-				num_image = int(ima_name.split('.')[0])
-				if num_image < 10:
-					ima_name = '0010.png'
-				else: ima_name = '{:04d}.png'.format(int(num_image/10)*10)
+				ima_name = img_name(ima_name,10)
 				depth = cv2.imread(os.path.join(self.path_depth,str(vid),ima_name), 0)
 				depth = cv2.resize(depth, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
 				depth = depth.astype(np.float32)
 				depth = np.expand_dims(depth, axis=2)
 				image = np.dstack((image,depth))
+
+			# Add 2 channel with image optical flow if required
+			# [NOT COMPLETED BECAUSE OF SPACE MEMORY ISSUES]
+			# if self.flow:
+			# 	ima_name = img_name(ima_name,11)
+
 
 
 			#Data augmentation if required
@@ -114,7 +123,7 @@ class DHF1K(Dataset):
 				image, saliency = augmentData(image,saliency)
 
 
-			# Add 4th or 5th and 5th or 6th channel with coordinates
+			# Add 2 channel with coordinates
 			if self.coord:
 				c1 = np.empty(shape=(self.size[0], self.size[1]))
 				c2 = np.empty(shape=(self.size[0], self.size[1]))

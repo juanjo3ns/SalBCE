@@ -95,6 +95,8 @@ if __name__ == '__main__':
 				help="""Enable data augmentation""")
 	parser.add_argument("--coord", default=False, type=bool,
 				help="""Enable coordconv""")
+	parser.add_argument("--flow", default=False, type=bool,
+				help="""Enable opticalflow""")
 	parser.add_argument("--lr", type=float, default=0.00001,
 				help="""Learning rate for training""")
 	parser.add_argument("--patience", type=int, default=2,
@@ -124,9 +126,10 @@ if __name__ == '__main__':
 	DEPTH = args.depth
 	AUGMENT = args.augment
 	COORD = args.coord
+	FLOW = args.flow
 	# Datasets for DHF1K
-	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
-	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
+	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD, flow=FLOW)
+	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD, flow=FLOW)
 
 	# Dataloaders
 	dataloader = {
