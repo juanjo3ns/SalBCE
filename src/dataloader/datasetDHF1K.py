@@ -117,7 +117,6 @@ class DHF1K(Dataset):
 			# 	ima_name = img_name(ima_name,11)
 
 
-
 			#Data augmentation if required
 			if self.d_augm and randint(0,1)==0:
 				image, saliency = augmentData(image,saliency)
@@ -127,10 +126,10 @@ class DHF1K(Dataset):
 			if self.coord:
 				c1 = np.empty(shape=(self.size[0], self.size[1]))
 				c2 = np.empty(shape=(self.size[0], self.size[1]))
-				for i in range(0,self.size[0]):
-					c1[i,:]= i
 				for i in range(0,self.size[1]):
-					c2[:,i]= i
+					c1[:,i] = np.linspace(-1,1,self.size[0])
+				for i in range(0,self.size[0]):
+					c2[i,:]= np.linspace(-1,1,self.size[1])
 				c1 = c1.astype(np.float32)
 				c2 = c2.astype(np.float32)
 				c1 = np.expand_dims(c1, axis=2)
@@ -145,7 +144,6 @@ class DHF1K(Dataset):
 
 			# swap channel dimensions
 			image = image.permute(2,0,1)
-
 
 
 		if self.return_path:

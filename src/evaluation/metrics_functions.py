@@ -8,7 +8,8 @@ from skimage.transform import resize
 try:
 	from cv2 import cv
 except ImportError:
-	print('please install Python binding of OpenCV to compute EMD')
+	cv = None
+	# print('please install Python binding of OpenCV to compute EMD')
 
 from evaluation.tools import normalize, match_hist
 

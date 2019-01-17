@@ -84,7 +84,7 @@ if __name__ == '__main__':
 	parser.add_argument("--path_out", default='sal_dhf1k_adamdepthcoordaugm2_frombestsaldepth',
 				type=str,
 				help="""set output path for the trained model""")
-	parser.add_argument("--batch_size", default=32,
+	parser.add_argument("--batch_size", default=12,
 				type=int,
 				help="""Set batch size""")
 	parser.add_argument("--n_epochs", default=5, type=int,
@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
 
 	# set output path ==========================================================
-	path_out = '../trained_models/batch32/' + args.path_out
+	path_out = '../trained_models/batch12_/' + args.path_out
 
 	if not os.path.exists(path_out):
 		# create output path
@@ -128,8 +128,8 @@ if __name__ == '__main__':
 	COORD = args.coord
 	FLOW = args.flow
 	# Datasets for DHF1K
-	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD, flow=FLOW)
-	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD, flow=FLOW)
+	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
+	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
 
 	# Dataloaders
 	dataloader = {
@@ -189,7 +189,7 @@ if __name__ == '__main__':
 	base_params = []
 	for i, (a, p) in enumerate(model.named_parameters()):
 		if i>25:
-			print(i, a, p.shape)
+			# print(i, a, p.shape)
 			decoder_parameters.append(p)
 		else: base_params.append(p)
 
@@ -217,7 +217,7 @@ if __name__ == '__main__':
 	# 							'min',
 	# 							patience=args.patience,
 	# 							verbose=True)
-	scheduler = StepLR(optimizer, step_size=3, gamma=0.1)
+	scheduler = StepLR(optimizer, step_size=2, gamma=0.1)
 
 	best_loss=9999999
 
