@@ -15,7 +15,7 @@ from torch.nn.modules.loss import BCELoss
 import torch.backends.cudnn as cudnn
 from torch.optim import SGD, Adam
 from torch.optim.lr_scheduler import ReduceLROnPlateau, StepLR
-
+from time import time
 
 from IPython import embed
 from tensorboard_logger import configure, log_value, log_histogram
@@ -49,7 +49,6 @@ def train_eval(mode, model, optimizer, dataloader):
 		# noramlize saliency maps values between [0,1]
 		gt_maps = X[1].cuda()/255
 		predictions = model.forward(inputs).squeeze()
-
 		# reduce size for loss
 		reduce_size = AvgPool2d((4,4))
 		pred_ = reduce_size(predictions)
@@ -84,7 +83,7 @@ if __name__ == '__main__':
 	parser.add_argument("--path_out", default='sal_dhf1k_adamdepthcoordaugm2_frombestsaldepth',
 				type=str,
 				help="""set output path for the trained model""")
-	parser.add_argument("--batch_size", default=12,
+	parser.add_argument("--batch_size", default=32,
 				type=int,
 				help="""Set batch size""")
 	parser.add_argument("--n_epochs", default=5, type=int,
@@ -99,7 +98,7 @@ if __name__ == '__main__':
 				help="""Enable opticalflow""")
 	parser.add_argument("--lr", type=float, default=0.00001,
 				help="""Learning rate for training""")
-	parser.add_argument("--patience", type=int, default=2,
+	parser.add_argument("--patience", type=int, default=3,
 				help="""Patience for learning rate scheduler (default 10)""")
 	args = parser.parse_args()
 
@@ -179,10 +178,7 @@ if __name__ == '__main__':
 	# loss =====================================================================
 	print("BCE criterium...")
 	bce_loss = BCELoss()
-	trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
-	print("Trainable parameters: ", trainable_parameters)
-	send("Trainable parameters: " + str(trainable_parameters))
-	send("Experiment: " + args.path_out)
+
 
 	# select only decoder parameters, keep vgg16 with pretrained weights
 	decoder_parameters = []
@@ -191,12 +187,19 @@ if __name__ == '__main__':
 		if i>25:
 			# print(i, a, p.shape)
 			decoder_parameters.append(p)
-		else: base_params.append(p)
+		else:
+			base_params.append(p)
+			p.requires_grad = False
 
 	# ADAM OPTIMIZER
-	optimizer = Adam(model.parameters(),
+	optimizer = Adam(decoder_parameters,
 					lr = lr,
 					weight_decay=0.000001)
+
+	trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
+	print("Trainable parameters: ", trainable_parameters)
+	send("Trainable parameters: " + str(trainable_parameters))
+	send("Experiment: " + args.path_out)
 
 	# STOCHASTIC GRADIENT DESCENT
 	# optimizer = SGD(model.parameters(),

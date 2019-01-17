@@ -8,17 +8,19 @@ from IPython import embed
 import matplotlib.pylab as plt
 from random import randint
 from scipy import ndimage
+from utils.sendTelegram import send
 import torch
 from torch.utils.data import Dataset, DataLoader
 from utils.load_flow import readFlow
 from torchvision import transforms
+from time import time
 
 PATH_DHF1K = "/home/dataset/DHF1K/"
 TRAIN = 'train'
 VAL = 'val'
 
 def augmentData(image,saliency):
-	augmentation = randint(0,3)
+	augmentation = randint(0,2)
 	augmentation = 2
 	if augmentation == 0:
 		image = image[:,::-1,:]
@@ -26,16 +28,16 @@ def augmentData(image,saliency):
 	elif augmentation == 1:
 		image = image[::-1,:,:]
 		saliency = saliency[::-1,:]
-	elif augmentation == 2:
-		image = ndimage.rotate(image, 45)
-		saliency = ndimage.rotate(saliency, 45)
-		sqr = image.shape[0]
-		start1 = int((sqr-192)/2)+1
-		end1 = sqr-int((sqr-192)/2)
-		start2 = int((sqr-256)/2)+1
-		end2 = sqr-int((sqr-256)/2)
-		image = image[start1:end1, start2:end2,:]
-		saliency = saliency[start1:end1, start2:end2]
+	# elif augmentation == 2:
+	# 	image = ndimage.rotate(image, 45)
+	# 	saliency = ndimage.rotate(saliency, 45)
+	# 	sqr = image.shape[0]
+	# 	start1 = int((sqr-192)/2)+1
+	# 	end1 = sqr-int((sqr-192)/2)
+	# 	start2 = int((sqr-256)/2)+1
+	# 	end2 = sqr-int((sqr-256)/2)
+	# 	image = image[start1:end1, start2:end2,:]
+	# 	saliency = saliency[start1:end1, start2:end2]
 	# convert to torch Tensor
 	image = np.ascontiguousarray(image)
 	saliency = np.ascontiguousarray(saliency)
@@ -144,7 +146,6 @@ class DHF1K(Dataset):
 
 			# swap channel dimensions
 			image = image.permute(2,0,1)
-
 
 		if self.return_path:
 			return image, saliency, rgb_ima
