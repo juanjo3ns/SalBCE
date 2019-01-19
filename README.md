@@ -4,7 +4,7 @@
 
 ![saliency_example](https://user-images.githubusercontent.com/16901615/51334553-54a8de80-1a80-11e9-95f2-9a24f20cb4cc.png)
 
-Saliency prediction is a very hot topic in computer vision with many different applications. It consists in predicting where the attention is going to be received in an image or video by a human. Our work is based on a deep neural network called [SalGAN](https://github.com/imatge-upc/saliency-salgan-2017 "Code") ([Paper](https://arxiv.org/pdf/1701.01081.pdf "Paper")) that was trained on a static dataset and it just inference each image separately without taking into account any other image or channel. With this network we've been trying to improve the saliency metrics using techniques such as depth estimation, optical flow (implemented but not trained yet), among others.
+Saliency prediction is a topic undergoing intense study in computer vision with a broad range of applications. It consists in predicting where the attention is going to be received in an image or video by a human. Our work is based on a deep neural network called [SalGAN](https://github.com/imatge-upc/saliency-salgan-2017 "Code") ([Paper](https://arxiv.org/pdf/1701.01081.pdf "Paper")) that was trained on a static dataset and it just inference each image separately without taking into account any other image or channel. With this network we've been trying to improve the saliency metrics using techniques such as depth estimation, optical flow (implemented but not trained yet), among others.
 
 #### Model Architecture:
 ![encoder-decoder_salgan](https://user-images.githubusercontent.com/16901615/51336894-f67efa00-1a85-11e9-80b4-86d85b29dc0c.png)
