@@ -4,6 +4,7 @@ from dataloader.datasetDHF1K import DHF1K
 from torch.utils.data import DataLoader
 from utils.salgan_utils import save_model, get_lr_optimizer
 from utils.sendTelegram import send
+from utils.printer import param_print
 from utils.salgan_generator import create_model, add_bn
 from evaluation.fast_evaluation import compute_metrics
 
@@ -83,10 +84,10 @@ if __name__ == '__main__':
 	parser.add_argument("--path_out", default='sal_dhf1k_adamdepthcoordaugm2_frombestsaldepth',
 				type=str,
 				help="""set output path for the trained model""")
-	parser.add_argument("--batch_size", default=32,
+	parser.add_argument("--batch_size", default=12,
 				type=int,
 				help="""Set batch size""")
-	parser.add_argument("--n_epochs", default=5, type=int,
+	parser.add_argument("--n_epochs", default=10, type=int,
 				help="""Set total number of epochs""")
 	parser.add_argument("--depth", default=False, type=bool,
 				help="""Enable 4th channel with depth""")
@@ -139,11 +140,10 @@ if __name__ == '__main__':
 	}
 
 
-
+	# POSSIBILITY OF CHOOSING GPU
 	torch.cuda.set_device(1)
-	# model ====================================================================
+	# MODEL INITIALIZATION
 	print("Init model...")
-	# init model with pre-trained weights
 	vgg_weights = torch.load('../trained_models/salgan_baseline.pt')['state_dict']
 	if DEPTH and COORD:
 		model = create_model(6)
@@ -157,6 +157,7 @@ if __name__ == '__main__':
 		for i in range(0,2):
 			vgg_weights = add_layer_weights(vgg_weights)
 	else: model = create_model(3)
+	# Instead of adding manually the layer of new weights, we could use strict=False
 	model.load_state_dict(vgg_weights)
 
 	# Add batch normalization to current model
@@ -173,40 +174,44 @@ if __name__ == '__main__':
 	# 	model = torch.nn.DataParallel(model)
 
 
-
-
-	# loss =====================================================================
-	print("BCE criterium...")
+	# LOSS FUNCTION
 	bce_loss = BCELoss()
 
-
-	# select only decoder parameters, keep vgg16 with pretrained weights
-	decoder_parameters = []
-	base_params = []
-	for i, (a, p) in enumerate(model.named_parameters()):
-		if i>25:
-			# print(i, a, p.shape)
-			decoder_parameters.append(p)
-		else:
-			base_params.append(p)
-			p.requires_grad = False
+	# FINE-TUNE WHOLE NETWORK OR JUST DECODER => uncomment / or different lr for each part
+	# decoder_parameters = []
+	# base_params = []
+	# for i, (a, p) in enumerate(model.named_parameters()):
+	# 	embed()
+	# 	if i>25:
+	# 		# print(i, a, p.shape)
+	# 		decoder_parameters.append(p)
+	# 	else:
+	# 		base_params.append(p)
+			# If you wanna train just the decoder put this
+			# p.requires_grad = False
 
 	# ADAM OPTIMIZER
-	optimizer = Adam(decoder_parameters,
+	optimizer = Adam(model.parameters(),
 					lr = lr,
 					weight_decay=0.000001)
 
-	trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
-	print("Trainable parameters: ", trainable_parameters)
-	send("Trainable parameters: " + str(trainable_parameters))
-	send("Experiment: " + args.path_out)
 
-	# STOCHASTIC GRADIENT DESCENT
+	# STOCHASTIC GRADIENT DESCENT OPTIMIZER
 	# optimizer = SGD(model.parameters(),
 	# 				lr = 0.00001,
 	# 				momentum=0.9,
 	# 				weight_decay=0.00001,
 	# 				nesterov=True)
+
+	# NUMBER OF TOTAL PARAMETERS
+	# pytorch_total_params = sum(p.numel() for p in model.parameters())
+	# NUMBER OF TRAINABLE PARAMETERS
+	trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
+	print("Trainable parameters: ", trainable_parameters)
+	send("Trainable parameters: " + str(trainable_parameters))
+	send("Experiment: " + args.path_out)
+
+	param_print([path_out,"",DEPTH,AUGMENT,COORD,FLOW,batch_size,lr,n_epochs, trainable_parameters])
 
 	# set learning rate scheduler
 	# ReduceLROnPlateau(
@@ -220,7 +225,7 @@ if __name__ == '__main__':
 	# 							'min',
 	# 							patience=args.patience,
 	# 							verbose=True)
-	scheduler = StepLR(optimizer, step_size=2, gamma=0.1)
+	scheduler = StepLR(optimizer, step_size=3, gamma=0.1)
 
 	best_loss=9999999
 
@@ -258,8 +263,8 @@ if __name__ == '__main__':
 			log_value("lr/{}".format(mode), lr, id_epoch)
 			# for v in model.state_dict():
 			# 	log_histogram("Layer {}".format(v), model.state_dict()[v], id_epoch)
-			# if (id_epoch%10)==0:
-			# 	save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
+			if (id_epoch%2)==0:
+				save_model(model, optimizer, id_epoch, path_out, name_model='{:03d}'.format(id_epoch))
 			# store model if val loss improves
 			if mode==VAL:
 				if best_loss > epoch_loss:

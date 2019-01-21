@@ -43,7 +43,7 @@ SAVE = args.save
 DEPTH = args.depth
 COORD = args.coord
 
-PATH_PYTORCH_WEIGHTS = '../trained_models/'+ MODEL +'/models/best.pt'
+PATH_PYTORCH_WEIGHTS = '../trained_models/batch12_/'+ MODEL +'/models/best.pt'
 # PATH_PYTORCH_WEIGHTS = '../trained_models/salgan_baseline.pt'
 DHF1K_PATH = '/home/dataset/DHF1K/'
 INPUT_PATH = os.path.join(DHF1K_PATH,'dhf1k_frames/')
@@ -84,10 +84,10 @@ def inference(y):
 		if COORD:
 			c1 = np.empty(shape=(192, 256))
 			c2 = np.empty(shape=(192, 256))
-			for i in range(0,192):
-				c1[i,:]= i
 			for i in range(0,256):
-				c2[:,i]= i
+				c1[:,i] = np.linspace(-1,1,192)
+			for i in range(0,192):
+				c2[i,:]= np.linspace(-1,1,256)
 			c1 = c1.astype(np.float32)
 			c2 = c2.astype(np.float32)
 			c1 = np.expand_dims(c1, axis=0)
