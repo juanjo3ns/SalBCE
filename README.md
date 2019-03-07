@@ -31,4 +31,4 @@ If you want to check how is the model performance while training, you can use te
 #### EVALUATION
 To evaluate a model you should run this script `src/evaluation/eval_dhf1k.py` and select the desired parameters as well. Parameters available: `--model` (the name that you put on --path_out), `--depth, --coord`, and also an option to save the predicted images `--save`. As a results you'll get the AUC, AUCs, NSS, CC and SIM of every video and the overall average.
 
-This experiments have been done in a GeForce GTX 1080 with 12GB RAM.
+These experiments have been done in a GeForce GTX 1080 with 12GB RAM.
