@@ -9,13 +9,14 @@ services:
     build: .
     ipc: host
     volumes:
-      - ../src:/home/code
-      - /media/eHD/juanjo/DATASETS/:/home/dataset
-      - /media/eHD/juanjo/TRAIN_POOL/:/home/code/trained_models
-      - /media/eHD/juanjo/SALIENCY_MAPS/:/home/saliency_maps
+      # - ../src:/home/code
+      # - /media/eHD/juanjo/DATASETS/:/home/dataset
+      # - /media/eHD/juanjo/TRAIN_POOL/:/home/code/trained_models
+      # - /media/eHD/juanjo/SALIENCY_MAPS/:/home/saliency_maps
+      - /media/eHD/juanjo/:/home/
     environment:
       - PYTHONPATH=/home/code
     ports:
-      - 6006:6006
+      - 6007:6006
     runtime: nvidia
     command: tail /dev/null -f
