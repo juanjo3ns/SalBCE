@@ -9,11 +9,10 @@ services:
     build: .
     ipc: host
     volumes:
-      # - ../src:/home/code
-      # - /media/eHD/juanjo/DATASETS/:/home/dataset
-      # - /media/eHD/juanjo/TRAIN_POOL/:/home/code/trained_models
-      # - /media/eHD/juanjo/SALIENCY_MAPS/:/home/saliency_maps
-      - /media/eHD/juanjo/:/home/
+      - ../src:/home/code
+      - /media/eHD/juanjo/DATASETS/:/home/dataset
+      - /media/eHD/juanjo/TRAIN_POOL/:/home/code/trained_models
+      - /media/eHD/juanjo/SALIENCY_MAPS/:/home/saliency_maps
     environment:
       - PYTHONPATH=/home/code
     ports:

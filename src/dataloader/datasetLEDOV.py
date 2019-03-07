@@ -20,7 +20,7 @@ numTraining = 456
 numValidation = 41
 
 class LEDOV(Dataset):
-	def __init__(self, mode='train',transformation=None, return_path=False, N=None):
+	def __init__(self, mode='train',transformation=False):
 		global PATH_DHF1K
 		self.size = (192, 256)
 		self.mean = [103.939, 116.779, 123.68]
@@ -44,8 +44,6 @@ class LEDOV(Dataset):
 		list_names = np.array([n.split('.')[0] for n in list_names])
 		self.list_names = list_names
 
-		if N is not None:
-			self.list_names = list_names[:N]
 		print("Total of {} images.".format(self.list_names.shape[0]))
 
 	def __len__(self):
@@ -62,7 +60,7 @@ class LEDOV(Dataset):
 		saliency = cv2.imread(os.path.join(self.path_saliency, vid,'GT','map', str(int(ima_name.split('.')[0])) + '.png'), 0)
 
 		# apply transformation
-		if self.transformation is not None:
+		if self.transformation:
 			# reshape
 			image = cv2.resize(image, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
 			saliency = cv2.resize(saliency, (self.size[1], self.size[0]), interpolation=cv2.INTER_AREA)
@@ -73,7 +71,7 @@ class LEDOV(Dataset):
 
 			# remove mean value
 			image -= self.mean
-			augmentation = randint(0,3)
+			augmentation = randint(0,4)
 			if augmentation == 0:
 				image = image[:,::-1,:]
 				saliency = saliency[:,::-1]
@@ -100,8 +98,4 @@ class LEDOV(Dataset):
 			# swap channel dimensions
 			image = image.permute(2,0,1)
 
-
-		if self.return_path:
-			return image, saliency, rgb_ima
-		else:
 			return image, saliency
