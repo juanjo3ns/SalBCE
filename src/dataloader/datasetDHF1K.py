@@ -11,7 +11,7 @@ from scipy import ndimage
 from utils.sendTelegram import send
 import torch
 from torch.utils.data import Dataset, DataLoader
-from utils.load_flow import readFlow
+# from utils.load_flow import readFlow
 from torchvision import transforms
 from time import time
 

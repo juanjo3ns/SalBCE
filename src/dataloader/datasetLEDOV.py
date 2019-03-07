@@ -20,7 +20,7 @@ numTraining = 456
 numValidation = 41
 
 class LEDOV(Dataset):
-	def __init__(self, mode='train',transformation=False, return_path=False, N=None):
+	def __init__(self, mode='train',transformation=None, return_path=False, N=None):
 		global PATH_DHF1K
 		self.size = (192, 256)
 		self.mean = [103.939, 116.779, 123.68]
@@ -60,7 +60,7 @@ class LEDOV(Dataset):
 		image = cv2.imread(rgb_ima)
 		ima_name = self.list_names[index][-4:]+'.png'
 		saliency = cv2.imread(os.path.join(self.path_saliency, vid,'GT','map', str(int(ima_name.split('.')[0])) + '.png'), 0)
-		
+
 		# apply transformation
 		if self.transformation is not None:
 			# reshape

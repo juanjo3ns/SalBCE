@@ -45,10 +45,12 @@ def train_eval(mode, model, optimizer, dataloader):
 
 	total_loss = []
 	#iterate epoch...
+	#iterate epoch...
 	for i, X in enumerate(dataloader[mode]):
 		inputs = X[0].cuda()
 		# noramlize saliency maps values between [0,1]
 		gt_maps = X[1].cuda()/255
+		embed()
 		predictions = model.forward(inputs).squeeze()
 		# reduce size for loss
 		reduce_size = AvgPool2d((4,4))
@@ -129,7 +131,7 @@ if __name__ == '__main__':
 	FLOW = args.flow
 	# Datasets for DHF1K
 	ds_train = DHF1K(mode=TRAIN, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
-	ds_validate = DHF1K(mode=VAL, transformation=True, depth=DEPTH, d_augm=AUGMENT, coord=COORD)
+	ds_validate = DHF1K(mode=VAL, transformation=False, depth=DEPTH, d_augm=False, coord=COORD)
 
 	# Dataloaders
 	dataloader = {
@@ -145,22 +147,23 @@ if __name__ == '__main__':
 	# MODEL INITIALIZATION
 	print("Init model...")
 	vgg_weights = torch.load('../trained_models/salgan_baseline.pt')['state_dict']
-	if DEPTH and COORD:
-		model = create_model(6)
-		for i in range(0,3):
-			vgg_weights = add_layer_weights(vgg_weights)
-	elif DEPTH:
-		model = create_model(4)
-		add_layer_weights(vgg_weights)
-	elif COORD:
-		model = create_model(5)
-		for i in range(0,2):
-			vgg_weights = add_layer_weights(vgg_weights)
-	else: model = create_model(3)
+	model = create_model(3)
+	# if DEPTH and COORD:
+	# 	model = create_model(6)
+	# 	for i in range(0,3):
+	# 		vgg_weights = add_layer_weights(vgg_weights)
+	# elif DEPTH:
+	# 	model = create_model(4)
+	# 	add_layer_weights(vgg_weights)
+	# elif COORD:
+	# 	model = create_model(5)
+	# 	for i in range(0,2):
+	# 		vgg_weights = add_layer_weights(vgg_weights)
+	# else: model = create_model(3)
 	# Instead of adding manually the layer of new weights, we could use strict=False
 	model.load_state_dict(vgg_weights)
 
-	# Add batch normalization to current model
+	# Add batch normalization to current model if needed
 	model = add_bn(model)
 
 	model.train()
@@ -211,6 +214,7 @@ if __name__ == '__main__':
 	send("Trainable parameters: " + str(trainable_parameters))
 	send("Experiment: " + args.path_out)
 
+	# PRINT TABLE OF PARAMETERS
 	param_print([path_out,"",DEPTH,AUGMENT,COORD,FLOW,batch_size,lr,n_epochs, trainable_parameters])
 
 	# set learning rate scheduler
@@ -226,7 +230,6 @@ if __name__ == '__main__':
 	# 							patience=args.patience,
 	# 							verbose=True)
 	scheduler = StepLR(optimizer, step_size=3, gamma=0.1)
-
 	best_loss=9999999
 
 	# main loop training =======================================================
@@ -234,20 +237,20 @@ if __name__ == '__main__':
 		for mode in [VAL, TRAIN]:
 			# select dataloader
 			data_iterator = dataloader[mode]
-
-			# saliency metrics
-			if mode ==VAL:
-				print("Evaluating metrics....")
-				# only do 100 images from validation
-				metrics = compute_metrics(model, 100, DEPTH, COORD)
-
-				# log metric values
-				for metric in metrics.keys():
-					log_value("Metrics/{}".format(metric),
-								metrics[metric], id_epoch)
-
-			# get epoch loss
-			print("--> {} epoch {}".format(mode, id_epoch))
+			#
+			# # saliency metrics
+			# if mode ==VAL:
+			# 	print("Evaluating metrics....")
+			# 	# only do 100 images from validation
+			# 	metrics = compute_metrics(model, 100, DEPTH, COORD)
+			#
+			# 	# log metric values
+			# 	for metric in metrics.keys():
+			# 		log_value("Metrics/{}".format(metric),
+			# 					metrics[metric], id_epoch)
+			#
+			# # get epoch loss
+			# print("--> {} epoch {}".format(mode, id_epoch))
 
 
 			epoch_loss = train_eval(mode, model, optimizer, dataloader)
